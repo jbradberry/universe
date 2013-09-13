@@ -38,7 +38,7 @@ class GameState(object):
         )
 
     def process_movement(self):
-        movements = dict((loc_id, actions.pop(0))
+        movements = dict((loc_id, actions[0])
                          for loc_id, actions in self.actions.iteritems()
                          if actions)
         while movements:
@@ -59,6 +59,20 @@ class GameState(object):
                 loc_id = random.choice(movements.keys())
                 self._do_move(loc_id, movements[loc_id])
                 del movements[loc_id]
+
+        # drop any waypoints that have been reached
+        for loc_id, actions in self.actions.iteritems():
+            move = actions[0]
+            locatable = self.old['locatables'][loc_id]
+            x, y, z = locatable['x'], locatable['y'], locatable['z']
+            if 'target_id' in move:
+                target = self.old['locatables'][move['target_id']]
+                x_t, y_t, z_t = target['x'], target['y'], target['z']
+            else:
+                x_t, y_t, z_t = move['x_t'], move['y_t'], move['z_t']
+
+            if (x, y, z) == (x_t, y_t, z_t):
+                actions.pop(0)
 
         self.new['locatables'] = self.old['locatables']
         self.new['actions'] = self.actions
@@ -83,8 +97,6 @@ class GameState(object):
             x_new = x + int((speed * dx / D).to_integral_value())
             y_new = y + int((speed * dy / D).to_integral_value())
             z_new = z + int((speed * dz / D).to_integral_value())
-            # waypoint isn't reached yet, so prepend back into the queue.
-            self.actions[loc_id].insert(0, move)
 
         locatable.update(x=x_new, y=y_new, z=z_new)
 

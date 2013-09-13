@@ -174,3 +174,33 @@ class MovementTestCase(unittest.TestCase):
                         results['locatables'][0] == {'x': 460, 'y': 215, 'z': 207} or
                         results['locatables'][0] == {'x': 500, 'y': 205, 'z': 190})
         self.assertEqual(results['actions'], {})
+
+    def test_four_way_cycle_intercept(self):
+        # ensures that the early-move deadlock breaker doesn't drop
+        # its waypoint when it fails to end the turn at the same
+        # location as its target.
+        state = {'turn': 2500, 'width': 1000,
+                 'locatables': {0: {'x': 500, 'y': 500, 'z': 500},
+                                1: {'x': 600, 'y': 500, 'z': 500},
+                                2: {'x': 600, 'y': 600, 'z': 500},
+                                3: {'x': 500, 'y': 600, 'z': 500}},
+                 'actions': {0: [{'target_id': 1, 'speed': 10}],
+                             1: [{'target_id': 2, 'speed': 10}],
+                             2: [{'target_id': 3, 'speed': 10}],
+                             3: [{'target_id': 0, 'speed': 10}]}}
+        updates = []
+
+        S = engine.GameState(state, updates)
+        results = S.generate()
+
+        self.assertEqual(results['turn'], 2501)
+        self.assertEqual(results['width'], 1000)
+        self.assertEqual(len(results['locatables']), 4)
+        coordinates = [(x['x'], x['y'], x['z'])
+                       for loc_id, x in sorted(results['locatables'].iteritems())]
+        self.assertEqual(len(set(coordinates)), 2)
+        self.assertEqual(len(results['actions']), 2)
+        k1, k2 = results['actions'].keys()
+        self.assertNotEqual(results['locatables'][k1], results['locatables'][k2])
+        self.assertTrue(results['actions'][k1][0]['target_id'] == k2 or
+                        results['actions'][k2][0]['target_id'] == k1)
