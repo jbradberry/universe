@@ -1,4 +1,3 @@
-from __future__ import division
 from decimal import Decimal
 import random
 
@@ -24,7 +23,7 @@ class GameState(object):
     def merge_updates(self):
         indexed_actions = dict(
             (loc_id, dict(enumerate(action_list)))
-            for loc_id, action_list in self.old['actions'].iteritems()
+            for loc_id, action_list in self.old['actions'].items()
         )
 
         for action in self.updates:
@@ -33,17 +32,17 @@ class GameState(object):
             indexed_actions.setdefault(loc_id, {})[seq] = action
 
         self.actions = dict(
-            (loc_id, [action for seq, action in sorted(actions.iteritems())])
-            for loc_id, actions in indexed_actions.iteritems()
+            (loc_id, [action for seq, action in sorted(actions.items())])
+            for loc_id, actions in indexed_actions.items()
         )
 
     def process_movement(self):
         movements = dict((loc_id, actions[0])
-                         for loc_id, actions in self.actions.iteritems()
+                         for loc_id, actions in self.actions.items()
                          if actions)
         while movements:
             update = False
-            for loc_id in list(movements.iterkeys()):
+            for loc_id in list(movements.keys()):
                 move = movements[loc_id]
                 if 'target_id' not in move:
                     self._do_move(loc_id, move)
@@ -56,12 +55,12 @@ class GameState(object):
                 del movements[loc_id]
 
             if not update:
-                loc_id = random.choice(movements.keys())
+                loc_id = random.choice(list(movements.keys()))
                 self._do_move(loc_id, movements[loc_id])
                 del movements[loc_id]
 
         # drop any waypoints that have been reached
-        for loc_id, actions in self.actions.iteritems():
+        for loc_id, actions in self.actions.items():
             move = actions[0]
             locatable = self.old['locatables'][loc_id]
             x, y, z = locatable['x'], locatable['y'], locatable['z']
@@ -102,7 +101,7 @@ class GameState(object):
 
     def post_process(self):
         loc_ids = [
-            loc_id for loc_id, actions in self.new['actions'].iteritems()
+            loc_id for loc_id, actions in self.new['actions'].items()
             if not actions
         ]
 

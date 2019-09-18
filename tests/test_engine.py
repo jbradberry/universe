@@ -197,7 +197,7 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['width'], 1000)
         self.assertEqual(len(results['locatables']), 4)
         coordinates = [(x['x'], x['y'], x['z'])
-                       for loc_id, x in sorted(results['locatables'].iteritems())]
+                       for loc_id, x in sorted(results['locatables'].items())]
         self.assertEqual(len(set(coordinates)), 2)
         self.assertEqual(len(results['actions']), 2)
         k1, k2 = results['actions'].keys()
