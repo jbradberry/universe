@@ -21,25 +21,27 @@ class GameState(object):
         self.new.update(turn=self.old['turn'] + 1, width=self.old['width'])
 
     def merge_updates(self):
-        indexed_actions = dict(
-            (loc_id, dict(enumerate(action_list)))
+        indexed_actions = {
+            loc_id: dict(enumerate(action_list))
             for loc_id, action_list in self.old['actions'].items()
-        )
+        }
 
         for action in self.updates:
             loc_id = action.pop('locatable_id')
             seq = action.pop('seq')
             indexed_actions.setdefault(loc_id, {})[seq] = action
 
-        self.actions = dict(
-            (loc_id, [action for seq, action in sorted(actions.items())])
+        self.actions = {
+            loc_id: [action for seq, action in sorted(actions.items())]
             for loc_id, actions in indexed_actions.items()
-        )
+        }
 
     def process_movement(self):
-        movements = dict((loc_id, actions[0])
-                         for loc_id, actions in self.actions.items()
-                         if actions)
+        movements = {
+            loc_id: actions[0]
+            for loc_id, actions in self.actions.items()
+            if actions
+        }
         while movements:
             update = False
             for loc_id in list(movements.keys()):
