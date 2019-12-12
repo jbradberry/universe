@@ -65,14 +65,14 @@ class GameState(object):
         for loc_id, actions in self.actions.items():
             move = actions[0]
             locatable = self.old['locatables'][loc_id]
-            x, y, z = locatable['x'], locatable['y'], locatable['z']
+            x, y = locatable['x'], locatable['y']
             if 'target_id' in move:
                 target = self.old['locatables'][move['target_id']]
-                x_t, y_t, z_t = target['x'], target['y'], target['z']
+                x_t, y_t = target['x'], target['y']
             else:
-                x_t, y_t, z_t = move['x_t'], move['y_t'], move['z_t']
+                x_t, y_t = move['x_t'], move['y_t']
 
-            if (x, y, z) == (x_t, y_t, z_t):
+            if (x, y) == (x_t, y_t):
                 actions.pop(0)
 
         self.new['locatables'] = self.old['locatables']
@@ -82,24 +82,23 @@ class GameState(object):
         locatable = self.old['locatables'][loc_id]
 
         speed = move['speed'] ** 2
-        x, y, z = locatable['x'], locatable['y'], locatable['z']
+        x, y = locatable['x'], locatable['y']
         if 'target_id' in move:
             target = self.old['locatables'][move['target_id']]
-            x_t, y_t, z_t = target['x'], target['y'], target['z']
+            x_t, y_t = target['x'], target['y']
         else:
-            x_t, y_t, z_t = move['x_t'], move['y_t'], move['z_t']
+            x_t, y_t = move['x_t'], move['y_t']
 
-        dx, dy, dz = x_t - x, y_t - y, z_t - z
-        D = Decimal(dx**2 + dy**2 + dz**2).sqrt()
+        dx, dy = x_t - x, y_t - y
+        D = Decimal(dx**2 + dy**2).sqrt()
 
         if D.to_integral_value() <= speed:
-            x_new, y_new, z_new = x_t, y_t, z_t
+            x_new, y_new = x_t, y_t
         else:
             x_new = x + int((speed * dx / D).to_integral_value())
             y_new = y + int((speed * dy / D).to_integral_value())
-            z_new = z + int((speed * dz / D).to_integral_value())
 
-        locatable.update(x=x_new, y=y_new, z=z_new)
+        locatable.update(x=x_new, y=y_new)
 
     def post_process(self):
         loc_ids = [
