@@ -1,11 +1,12 @@
 import unittest
+
 from universe import engine
 
 
 class MovementTestCase(unittest.TestCase):
     def test_empty_universe(self):
         state = {'turn': 2500, 'width': 1000, 'locatables': {}, 'actions': {}}
-        updates = []
+        updates = {}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -17,7 +18,7 @@ class MovementTestCase(unittest.TestCase):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 456, 'y': 337}},
                  'actions': {}}
-        updates = []
+        updates = {}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -31,8 +32,8 @@ class MovementTestCase(unittest.TestCase):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235}},
                  'actions': {}}
-        # actual speed is speed**2
-        updates = [{'locatable_id': 0, 'seq': 0, 'x_t': 422, 'y_t': 210, 'speed': 10}]
+        # actual speed is warp**2
+        updates = {0: [{'seq': 0, 'x_t': 422, 'y_t': 210, 'warp': 10}]}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -46,8 +47,8 @@ class MovementTestCase(unittest.TestCase):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235}},
                  'actions': {}}
-        # actual speed is speed**2
-        updates = [{'locatable_id': 0, 'seq': 0, 'x_t': 168, 'y_t': 870, 'speed': 10}]
+        # actual speed is warp**2
+        updates = {0: [{'seq': 0, 'x_t': 168, 'y_t': 870, 'warp': 10}]}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -56,13 +57,13 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['width'], 1000)
         self.assertEqual(results['locatables'], {0: {'x': 436, 'y': 325}})
         self.assertEqual(results['actions'],
-                         {0: [{'x_t': 168, 'y_t': 870, 'speed': 10}]})
+                         {0: [{'x_t': 168, 'y_t': 870, 'warp': 10}]})
 
     def test_previously_queued_move(self):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235}},
-                 'actions': {0: [{'x_t': 422, 'y_t': 210, 'speed': 10}]}}
-        updates = []
+                 'actions': {0: [{'x_t': 422, 'y_t': 210, 'warp': 10}]}}
+        updates = {}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -75,8 +76,8 @@ class MovementTestCase(unittest.TestCase):
     def test_replace_queued_move(self):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235}},
-                 'actions': {0: [{'x_t': 637, 'y_t': 786, 'speed': 8}]}}
-        updates = [{'locatable_id': 0, 'seq': 0, 'x_t': 422, 'y_t': 210, 'speed': 10}]
+                 'actions': {0: [{'x_t': 637, 'y_t': 786, 'warp': 8}]}}
+        updates = {0: [{'seq': 0, 'x_t': 422, 'y_t': 210, 'warp': 10}]}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -89,8 +90,8 @@ class MovementTestCase(unittest.TestCase):
     def test_add_to_queued_moves(self):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235}},
-                 'actions': {0: [{'x_t': 422, 'y_t': 210, 'speed': 10}]}}
-        updates = [{'locatable_id': 0, 'seq': 1, 'x_t': 637, 'y_t': 786, 'speed': 8}]
+                 'actions': {0: [{'x_t': 422, 'y_t': 210, 'warp': 10}]}}
+        updates = {0: [{'seq': 1, 'x_t': 637, 'y_t': 786, 'warp': 8}]}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -98,14 +99,14 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['turn'], 2501)
         self.assertEqual(results['width'], 1000)
         self.assertEqual(results['locatables'], {0: {'x': 422, 'y': 210}})
-        self.assertEqual(results['actions'], {0: [{'x_t': 637, 'y_t': 786, 'speed': 8}]})
+        self.assertEqual(results['actions'], {0: [{'x_t': 637, 'y_t': 786, 'warp': 8}]})
 
     def test_target_stationary_object(self):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235},
                                 1: {'x': 460, 'y': 215}},
-                 'actions': {0: [{'target_id': 1, 'speed': 10}]}}
-        updates = []
+                 'actions': {0: [{'target_id': 1, 'warp': 10}]}}
+        updates = {}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -120,9 +121,9 @@ class MovementTestCase(unittest.TestCase):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235},
                                 1: {'x': 460, 'y': 215}},
-                 'actions': {0: [{'target_id': 1, 'speed': 10}],
-                             1: [{'x_t': 465, 'y_t': 220, 'speed': 10}]}}
-        updates = []
+                 'actions': {0: [{'target_id': 1, 'warp': 10}],
+                             1: [{'x_t': 465, 'y_t': 220, 'warp': 10}]}}
+        updates = {}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -137,9 +138,9 @@ class MovementTestCase(unittest.TestCase):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235},
                                 1: {'x': 460, 'y': 215}},
-                 'actions': {0: [{'target_id': 1, 'speed': 10}],
-                             1: [{'target_id': 0, 'speed': 10}]}}
-        updates = []
+                 'actions': {0: [{'target_id': 1, 'warp': 10}],
+                             1: [{'target_id': 0, 'warp': 10}]}}
+        updates = {}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -157,10 +158,10 @@ class MovementTestCase(unittest.TestCase):
                  'locatables': {0: {'x': 480, 'y': 235},
                                 1: {'x': 460, 'y': 215},
                                 2: {'x': 500, 'y': 205}},
-                 'actions': {0: [{'target_id': 1, 'speed': 10}],
-                             1: [{'target_id': 2, 'speed': 10}],
-                             2: [{'target_id': 0, 'speed': 10}]}}
-        updates = []
+                 'actions': {0: [{'target_id': 1, 'warp': 10}],
+                             1: [{'target_id': 2, 'warp': 10}],
+                             2: [{'target_id': 0, 'warp': 10}]}}
+        updates = {}
 
         S = engine.GameState(state, updates)
         results = S.generate()
@@ -184,11 +185,11 @@ class MovementTestCase(unittest.TestCase):
                                 1: {'x': 600, 'y': 500},
                                 2: {'x': 600, 'y': 600},
                                 3: {'x': 500, 'y': 600}},
-                 'actions': {0: [{'target_id': 1, 'speed': 10}],
-                             1: [{'target_id': 2, 'speed': 10}],
-                             2: [{'target_id': 3, 'speed': 10}],
-                             3: [{'target_id': 0, 'speed': 10}]}}
-        updates = []
+                 'actions': {0: [{'target_id': 1, 'warp': 10}],
+                             1: [{'target_id': 2, 'warp': 10}],
+                             2: [{'target_id': 3, 'warp': 10}],
+                             3: [{'target_id': 0, 'warp': 10}]}}
+        updates = {}
 
         S = engine.GameState(state, updates)
         results = S.generate()
