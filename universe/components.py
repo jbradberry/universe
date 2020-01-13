@@ -29,4 +29,7 @@ class PositionComponent(Component):
 
 
 class QueueComponent(Component):
+    def __init__(self, order_types):
+        self._order_types = order_types
+
     queue = fields.ListField()

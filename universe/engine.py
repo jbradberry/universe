@@ -1,4 +1,6 @@
-from . import systems
+from . import components, systems
+from .orders import (Move, CargoTransfer, Scrap, BuildInstallation, Terraform,
+                     BuildStation, BuildShip, LaunchMassPacket)
 
 
 class Manager:
@@ -51,6 +53,17 @@ class GameState:
         self.manager = Manager()
         self.manager.register_system(systems.UpdateSystem)
         self.manager.register_system(systems.MovementSystem)
+
+        self.manager.register_entity_type('ship', [
+            components.PositionComponent(),
+            components.QueueComponent([Move, CargoTransfer, Scrap]),
+        ])
+        self.manager.register_entity_type('planet', [
+            components.PositionComponent(),
+            components.QueueComponent([
+                BuildInstallation, Terraform, BuildStation, BuildShip, LaunchMassPacket,
+            ]),
+        ])
 
         self.new = {}
 
