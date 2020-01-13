@@ -6,8 +6,15 @@ class Manager:
         self._components = {}
         self._systems = []
 
+        self._entity_registry = {}
+
     def register_system(self, system):
         self._systems.append(system)
+
+    def register_entity_type(self, name, components):
+        if name in self._entity_registry:
+            raise ValueError("{} is already a registered entity type.".format(name))
+        self._entity_registry[name] = components
 
     def get_components(self, _type):
         return self._components.get(_type, {})
