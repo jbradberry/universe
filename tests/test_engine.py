@@ -17,7 +17,7 @@ class MovementTestCase(unittest.TestCase):
     def test_one_stationary_object(self):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 456, 'y': 337}},
-                 'actions': {}}
+                 'actions': {0: []}}
         updates = {}
 
         S = engine.GameState(state, updates)
@@ -26,12 +26,12 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['turn'], 2501)
         self.assertEqual(results['width'], 1000)
         self.assertEqual(results['locatables'], {0: {'x': 456, 'y': 337}})
-        self.assertEqual(results['actions'], {})
+        self.assertEqual(results['actions'], {0: []})
 
     def test_one_object_single_turn_move(self):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235}},
-                 'actions': {}}
+                 'actions': {0: []}}
         # actual speed is warp**2
         updates = {0: [{'seq': 0, 'x_t': 422, 'y_t': 210, 'warp': 10}]}
 
@@ -41,12 +41,12 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['turn'], 2501)
         self.assertEqual(results['width'], 1000)
         self.assertEqual(results['locatables'], {0: {'x': 422, 'y': 210}})
-        self.assertEqual(results['actions'], {})
+        self.assertEqual(results['actions'], {0: []})
 
     def test_multi_turn_single_move(self):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235}},
-                 'actions': {}}
+                 'actions': {0: []}}
         # actual speed is warp**2
         updates = {0: [{'seq': 0, 'x_t': 168, 'y_t': 870, 'warp': 10}]}
 
@@ -71,7 +71,7 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['turn'], 2501)
         self.assertEqual(results['width'], 1000)
         self.assertEqual(results['locatables'], {0: {'x': 422, 'y': 210}})
-        self.assertEqual(results['actions'], {})
+        self.assertEqual(results['actions'], {0: []})
 
     def test_replace_queued_move(self):
         state = {'turn': 2500, 'width': 1000,
@@ -85,7 +85,7 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['turn'], 2501)
         self.assertEqual(results['width'], 1000)
         self.assertEqual(results['locatables'], {0: {'x': 422, 'y': 210}})
-        self.assertEqual(results['actions'], {})
+        self.assertEqual(results['actions'], {0: []})
 
     def test_add_to_queued_moves(self):
         state = {'turn': 2500, 'width': 1000,
@@ -105,7 +105,7 @@ class MovementTestCase(unittest.TestCase):
         state = {'turn': 2500, 'width': 1000,
                  'locatables': {0: {'x': 480, 'y': 235},
                                 1: {'x': 460, 'y': 215}},
-                 'actions': {0: [{'target_id': 1, 'warp': 10}]}}
+                 'actions': {0: [{'target_id': 1, 'warp': 10}], 1: []}}
         updates = {}
 
         S = engine.GameState(state, updates)
@@ -115,7 +115,7 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['width'], 1000)
         self.assertEqual(results['locatables'], {0: {'x': 460, 'y': 215},
                                                  1: {'x': 460, 'y': 215}})
-        self.assertEqual(results['actions'], {})
+        self.assertEqual(results['actions'], {0: [], 1: []})
 
     def test_target_moving_object(self):
         state = {'turn': 2500, 'width': 1000,
@@ -132,7 +132,7 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['width'], 1000)
         self.assertEqual(results['locatables'], {0: {'x': 465, 'y': 220},
                                                  1: {'x': 465, 'y': 220}})
-        self.assertEqual(results['actions'], {})
+        self.assertEqual(results['actions'], {0: [], 1: []})
 
     def test_mutual_intercept(self):
         state = {'turn': 2500, 'width': 1000,
@@ -151,7 +151,7 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['locatables'][0], results['locatables'][1])
         self.assertTrue(results['locatables'][0] == {'x': 480, 'y': 235} or
                         results['locatables'][0] == {'x': 460, 'y': 215})
-        self.assertEqual(results['actions'], {})
+        self.assertEqual(results['actions'], {0: [], 1: []})
 
     def test_three_way_cycle_intercept(self):
         state = {'turn': 2500, 'width': 1000,
@@ -174,7 +174,7 @@ class MovementTestCase(unittest.TestCase):
         self.assertTrue(results['locatables'][0] == {'x': 480, 'y': 235} or
                         results['locatables'][0] == {'x': 460, 'y': 215} or
                         results['locatables'][0] == {'x': 500, 'y': 205})
-        self.assertEqual(results['actions'], {})
+        self.assertEqual(results['actions'], {0: [], 1: [], 2: []})
 
     def test_four_way_cycle_intercept(self):
         # ensures that the early-move deadlock breaker doesn't drop
@@ -200,8 +200,8 @@ class MovementTestCase(unittest.TestCase):
         coordinates = [(x['x'], x['y'])
                        for loc_id, x in sorted(results['locatables'].items())]
         self.assertEqual(len(set(coordinates)), 2)
-        self.assertEqual(len(results['actions']), 2)
-        k1, k2 = results['actions'].keys()
+        self.assertEqual(len(results['actions']), 4)
+        k1, k2 = [k for k, v in results['actions'].items() if v]
         self.assertNotEqual(results['locatables'][k1], results['locatables'][k2])
         self.assertTrue(results['actions'][k1][0]['target_id'] == k2 or
                         results['actions'][k2][0]['target_id'] == k1)

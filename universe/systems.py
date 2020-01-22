@@ -4,11 +4,10 @@ import random
 
 class UpdateSystem:
     def process(self, manager):
-        for entity, updates in manager.get_components('update').items():
-            queue = manager.get_component('queue', entity) or []
+        for entity, queue in manager.get_components('queue').items():
             indexed_queue = dict(enumerate(queue))
 
-            for action in updates:
+            for action in manager.get_updates(entity):
                 seq = action.pop('seq')
                 indexed_queue[seq] = action
 
@@ -43,6 +42,8 @@ class MovementSystem:
 
         # drop any waypoints that have been reached
         for entity, actions in manager.get_components('queue').items():
+            if not actions:
+                continue
             move = actions[0]
             position = manager.get_component('position', entity)
             x, y = position['x'], position['y']

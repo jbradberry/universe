@@ -7,6 +7,7 @@ class Manager:
     def __init__(self):
         self._components = {}
         self._systems = []
+        self._updates = {}
 
         self._entity_registry = {}
 
@@ -17,6 +18,9 @@ class Manager:
         if name in self._entity_registry:
             raise ValueError("{} is already a registered entity type.".format(name))
         self._entity_registry[name] = components
+
+    def get_updates(self, entity):
+        return self._updates.get(entity, [])
 
     def get_components(self, _type):
         return self._components.get(_type, {})
@@ -35,7 +39,7 @@ class Manager:
     def import_data(self, data, updates):
         self._components['position'] = {k: dict(v) for k, v in (data.get('locatables') or {}).items()}
         self._components['queue'] = {k: list(v) for k, v in (data.get('actions') or {}).items()}
-        self._components['update'] = {k: list(v) for k, v in (updates or {}).items()}
+        self._updates = updates
 
     def export_data(self):
         data = {}
@@ -74,18 +78,7 @@ class GameState:
         self.manager.process()
         self.new.update(self.manager.export_data())
 
-        self.post_process()
-
         return self.new
 
     def new_headers(self):
         self.new.update(turn=self.old['turn'] + 1, width=self.old['width'])
-
-    def post_process(self):
-        loc_ids = [
-            loc_id for loc_id, actions in self.new['actions'].items()
-            if not actions
-        ]
-
-        for loc_id in loc_ids:
-            del self.new['actions'][loc_id]
