@@ -3,6 +3,21 @@ from .orders import (Move, CargoTransfer, Scrap, BuildInstallation, Terraform,
                      BuildStation, BuildShip, LaunchMassPacket)
 
 
+class Entity:
+    def __init__(self, registry, data):
+        self._components = {}
+        pass
+
+    def __contains__(self, key):
+        return key in self._components
+
+    def serialize(self):
+        data = {}
+        for name, component in self._components.items():
+            pass
+        return data
+
+
 class Manager:
     def __init__(self):
         self._components = {}
@@ -37,16 +52,18 @@ class Manager:
             system.process(self)
 
     def import_data(self, data, updates):
-        self._components['position'] = {k: dict(v) for k, v in (data.get('locatables') or {}).items()}
-        self._components['queue'] = {k: list(v) for k, v in (data.get('actions') or {}).items()}
+        entities = {_id: Entity(None, entity) for _id, entity in (data.get('entities') or {}).items()}
+
+        self._components['position'] = {_id: entity for _id, entity in entities.items() if 'position' in entity}
+        self._components['queue'] = {_id: entity for _id, entity in entities.items() if 'queue' in entity}
         self._updates = updates
 
     def export_data(self):
         data = {}
-        data['locatables'] = {k: dict(v) for k, v in self._components['position'].items()}
-        data['actions'] = {k: list(v) for k, v in self._components['queue'].items()}
+        data.update((_id, entity) for _id, entity in self._components['position'].items())
+        data.update((_id, entity) for _id, entity in self._components['queue'].items())
 
-        return data
+        return {'entities': {_id: entity.serialize() for _id, entity in data.items()}}
 
 
 class GameState:
