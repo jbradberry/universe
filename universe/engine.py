@@ -5,16 +5,16 @@ from .orders import (Move, CargoTransfer, Scrap, BuildInstallation, Terraform,
 
 class Entity:
     def __init__(self, registry, data):
-        self._components = {}
-        pass
+        self._data = data
+        self._components = registry[data['type']]
 
     def __contains__(self, key):
         return key in self._components
 
     def serialize(self):
         data = {}
-        for name, component in self._components.items():
-            pass
+        for component in self._components:
+            data.update(component.serialize(self._data))
         return data
 
 
@@ -32,7 +32,7 @@ class Manager:
     def register_entity_type(self, name, components):
         if name in self._entity_registry:
             raise ValueError("{} is already a registered entity type.".format(name))
-        self._entity_registry[name] = components
+        self._entity_registry[name] = {component.name: component for component in components}
 
     def get_updates(self, entity):
         return self._updates.get(entity, [])
@@ -52,7 +52,7 @@ class Manager:
             system.process(self)
 
     def import_data(self, data, updates):
-        entities = {_id: Entity(None, entity) for _id, entity in (data.get('entities') or {}).items()}
+        entities = {_id: Entity(self._entity_registry, entity) for _id, entity in (data.get('entities') or {}).items()}
 
         self._components['position'] = {_id: entity for _id, entity in entities.items() if 'position' in entity}
         self._components['queue'] = {_id: entity for _id, entity in entities.items() if 'queue' in entity}

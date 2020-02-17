@@ -5,10 +5,10 @@ class MetaComponent(type):
     def __new__(cls, name, bases, attrs, **kwargs):
         super_new = super().__new__
 
-        new_attrs = {}
+        new_attrs = {'_fields': {}}
         for name, f in attrs.items():
             if isinstance(f, fields.Field):
-                new_attrs[name] = fields.Accessor(name, f)
+                new_attrs['_fields'][name] = f
             else:
                 new_attrs[name] = f
 
@@ -17,19 +17,25 @@ class MetaComponent(type):
 
 
 class Component(metaclass=MetaComponent):
-    pass
+    def serialize(self, data):
+        return {name: data[name] for name, field in self._fields.items()
+                if name in data}
 
 
 class PositionComponent(Component):
+    name = 'position'
+
     x = fields.IntField()
     y = fields.IntField()
-    warp = fields.IntField()
-    x_prev = fields.IntField()
-    y_prev = fields.IntField()
+    warp = fields.IntField(required=False)
+    x_prev = fields.IntField(required=False)
+    y_prev = fields.IntField(required=False)
 
 
 class QueueComponent(Component):
-    def __init__(self, order_types):
-        self._order_types = order_types
+    name = 'queue'
 
     queue = fields.ListField()
+
+    def __init__(self, order_types):
+        self._order_types = order_types
