@@ -12,7 +12,7 @@ class Entity:
         return key in self._components
 
     def serialize(self):
-        data = {}
+        data = {'type': self._data['type']}
         for _type, component in self._components.items():
             data.update(component.serialize(self._data))
         return data

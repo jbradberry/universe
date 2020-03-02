@@ -175,7 +175,7 @@ class MovementTestCase(unittest.TestCase):
         coordinates = [(entity['x'], entity['y'])
                        for entity in results['entities'].values()]
         self.assertEqual(len(set(coordinates)), 2)
-        self.assertTrue(all(entity['queue'] for entity in results['entities'].values()))
         # FIX ME!
         # Once we change the implementation of how movement happens, we'll need to put in new
         # assertions for that.
+        # self.assertTrue(all(entity['queue'] for entity in results['entities'].values()))
