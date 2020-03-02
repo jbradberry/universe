@@ -13,7 +13,7 @@ class Entity:
 
     def serialize(self):
         data = {}
-        for component in self._components:
+        for _type, component in self._components.items():
             data.update(component.serialize(self._data))
         return data
 
@@ -34,17 +34,17 @@ class Manager:
             raise ValueError("{} is already a registered entity type.".format(name))
         self._entity_registry[name] = {component.name: component for component in components}
 
-    def get_updates(self, entity):
-        return self._updates.get(entity, [])
+    def get_updates(self, _id):
+        return self._updates.get(_id, [])
 
     def get_components(self, _type):
         return self._components.get(_type, {})
 
-    def get_component(self, _type, entity):
-        return self._components.get(_type, {}).get(entity)
+    def get_component(self, _type, _id):
+        return self._components.get(_type, {}).get(_id)
 
-    def set_component(self, _type, entity, component):
-        self._components.setdefault(_type, {})[entity] = component
+    def set_component(self, _type, _id, entity):
+        self._components.setdefault(_type, {})[_id] = entity
 
     def process(self):
         for system_cls in self._systems:

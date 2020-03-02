@@ -151,8 +151,6 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['entities'][1]['x'], results['entities'][2]['x'])
         self.assertEqual(results['entities'][0]['y'], results['entities'][1]['y'])
         self.assertEqual(results['entities'][1]['y'], results['entities'][2]['y'])
-        self.assertEqual(results['entities'][0]['z'], results['entities'][1]['z'])
-        self.assertEqual(results['entities'][1]['z'], results['entities'][2]['z'])
         self.assertEqual(results['entities'][0]['queue'], [])
         self.assertEqual(results['entities'][1]['queue'], [])
         self.assertEqual(results['entities'][2]['queue'], [])
@@ -175,7 +173,7 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['width'], 1000)
         self.assertEqual(len(results['entities']), 4)
         coordinates = [(entity['x'], entity['y'])
-                       for entity in sorted(results['entities'].values())]
+                       for entity in results['entities'].values()]
         self.assertEqual(len(set(coordinates)), 2)
         self.assertTrue(all(entity['queue'] for entity in results['entities'].values()))
         # FIX ME!

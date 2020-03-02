@@ -4,27 +4,29 @@ import random
 
 class UpdateSystem:
     def process(self, manager):
-        for entity, queue in manager.get_components('queue').items():
+        for _id, entity in manager.get_components('queue').items():
+            queue = entity._data['queue']
             indexed_queue = dict(enumerate(queue))
 
-            for action in manager.get_updates(entity):
+            for action in manager.get_updates(_id):
                 seq = action.pop('seq')
                 indexed_queue[seq] = action
 
-            manager.set_component('queue', entity, [action for seq, action in sorted(indexed_queue.items())])
+            entity._data['queue'] = [action for seq, action in sorted(indexed_queue.items())]
 
 
 class MovementSystem:
     def process(self, manager):
         movements = {
-            entity: actions[0]
-            for entity, actions in manager.get_components('queue').items()
-            if actions
+            _id: entity
+            for _id, entity in manager.get_components('queue').items()
+            if entity._data['queue']
         }
         while movements:
             update = False
-            for entity in list(movements.keys()):
-                move = movements[entity]
+            for _id in list(movements.keys()):
+                entity = movements[_id]
+                move = entity._data['queue'][0]
                 if 'target_id' not in move:
                     self._do_move(manager, entity, move)
                 elif move['target_id'] not in movements:
@@ -33,37 +35,34 @@ class MovementSystem:
                     continue
 
                 update = True
-                del movements[entity]
+                del movements[_id]
 
             if not update:
-                entity = random.choice(list(movements.keys()))
-                self._do_move(manager, entity, movements[entity])
-                del movements[entity]
+                _id = random.choice(list(movements.keys()))
+                self._do_move(manager, movements[_id], movements[_id]._data['queue'][0])
+                del movements[_id]
 
         # drop any waypoints that have been reached
-        for entity, actions in manager.get_components('queue').items():
-            if not actions:
+        for _id, entity in manager.get_components('queue').items():
+            if not entity._data['queue']:
                 continue
-            move = actions[0]
-            position = manager.get_component('position', entity)
-            x, y = position['x'], position['y']
+            move = entity._data['queue'][0]
+            x, y = entity._data['x'], entity._data['y']
             if 'target_id' in move:
-                target = manager.get_component('position', move['target_id'])
-                x_t, y_t = target['x'], target['y']
+                target_entity = manager.get_component('position', move['target_id'])
+                x_t, y_t = target_entity._data['x'], target_entity._data['y']
             else:
                 x_t, y_t = move['x_t'], move['y_t']
 
             if (x, y) == (x_t, y_t):
-                actions.pop(0)
-                manager.set_component('queue', entity, actions)
+                entity._data['queue'].pop(0)
 
     def _do_move(self, manager, entity, move):
-        position = manager.get_component('position', entity)
         speed = move['warp'] ** 2
-        x, y = position['x'], position['y']
+        x, y = entity._data['x'], entity._data['y']
         if 'target_id' in move:
-            target = manager.get_component('position', move['target_id'])
-            x_t, y_t = target['x'], target['y']
+            target_entity = manager.get_component('position', move['target_id'])
+            x_t, y_t = target_entity._data['x'], target_entity._data['y']
         else:
             x_t, y_t = move['x_t'], move['y_t']
 
@@ -76,5 +75,4 @@ class MovementSystem:
             x_new = x + int((speed * dx / D).to_integral_value())
             y_new = y + int((speed * dy / D).to_integral_value())
 
-        position.update(x=x_new, y=y_new)
-        manager.set_component('position', entity, position)
+        entity._data.update(x=x_new, y=y_new)
