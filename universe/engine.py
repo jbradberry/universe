@@ -46,22 +46,25 @@ class Manager:
     def set_entity(self, _type, _id, entity):
         self._components.setdefault(_type, {})[_id] = entity
 
+    def register_entity(self, _id, entity):
+        entity_obj = Entity(self._entity_registry, entity)
+        for component in entity_obj._components:
+            self._components.setdefault(component, {})[_id] = entity_obj
+
     def process(self):
         for system_cls in self._systems:
             system = system_cls()
             system.process(self)
 
     def import_data(self, data, updates):
-        entities = {_id: Entity(self._entity_registry, entity) for _id, entity in (data.get('entities') or {}).items()}
-
-        self._components['position'] = {_id: entity for _id, entity in entities.items() if 'position' in entity}
-        self._components['queue'] = {_id: entity for _id, entity in entities.items() if 'queue' in entity}
+        for _id, entity in (data.get('entities') or {}).items():
+            self.register_entity(_id, entity)
         self._updates = updates
 
     def export_data(self):
         data = {}
-        data.update((_id, entity) for _id, entity in self._components['position'].items())
-        data.update((_id, entity) for _id, entity in self._components['queue'].items())
+        data.update((_id, entity) for _id, entity in self._components.get('position', {}).items())
+        data.update((_id, entity) for _id, entity in self._components.get('queue', {}).items())
 
         return {'entities': {_id: entity.serialize() for _id, entity in data.items()}}
 
