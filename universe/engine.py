@@ -37,13 +37,13 @@ class Manager:
     def get_updates(self, _id):
         return self._updates.get(_id, [])
 
-    def get_components(self, _type):
+    def get_entities(self, _type):
         return self._components.get(_type, {})
 
-    def get_component(self, _type, _id):
+    def get_entity(self, _type, _id):
         return self._components.get(_type, {}).get(_id)
 
-    def set_component(self, _type, _id, entity):
+    def set_entity(self, _type, _id, entity):
         self._components.setdefault(_type, {})[_id] = entity
 
     def process(self):

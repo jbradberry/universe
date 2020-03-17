@@ -4,7 +4,7 @@ import random
 
 class UpdateSystem:
     def process(self, manager):
-        for _id, entity in manager.get_components('queue').items():
+        for _id, entity in manager.get_entities('queue').items():
             queue = entity._data['queue']
             indexed_queue = dict(enumerate(queue))
 
@@ -19,7 +19,7 @@ class MovementSystem:
     def process(self, manager):
         movements = {
             _id: entity
-            for _id, entity in manager.get_components('queue').items()
+            for _id, entity in manager.get_entities('queue').items()
             if entity._data['queue']
         }
         while movements:
@@ -43,13 +43,13 @@ class MovementSystem:
                 del movements[_id]
 
         # drop any waypoints that have been reached
-        for _id, entity in manager.get_components('queue').items():
+        for _id, entity in manager.get_entities('queue').items():
             if not entity._data['queue']:
                 continue
             move = entity._data['queue'][0]
             x, y = entity._data['x'], entity._data['y']
             if 'target_id' in move:
-                target_entity = manager.get_component('position', move['target_id'])
+                target_entity = manager.get_entity('position', move['target_id'])
                 x_t, y_t = target_entity._data['x'], target_entity._data['y']
             else:
                 x_t, y_t = move['x_t'], move['y_t']
@@ -61,7 +61,7 @@ class MovementSystem:
         speed = move['warp'] ** 2
         x, y = entity._data['x'], entity._data['y']
         if 'target_id' in move:
-            target_entity = manager.get_component('position', move['target_id'])
+            target_entity = manager.get_entity('position', move['target_id'])
             x_t, y_t = target_entity._data['x'], target_entity._data['y']
         else:
             x_t, y_t = move['x_t'], move['y_t']
