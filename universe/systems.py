@@ -39,7 +39,7 @@ class MovementSystem:
 
             if not update:
                 _id = random.choice(list(movements.keys()))
-                self._do_move(manager, movements[_id], movements[_id].entity.queue[0])
+                self._do_move(manager, movements[_id], movements[_id].queue[0])
                 del movements[_id]
 
         # drop any waypoints that have been reached
