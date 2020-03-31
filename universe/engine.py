@@ -8,6 +8,24 @@ class Entity:
         self._data = data
         self._components = registry[data['type']]
 
+    def __getattr__(self, name):
+        for component in self.__data__.get('_components', {}).values():
+            if name in component._fields:
+                return self.__data__['_data'][name]
+        return self.__data__.get(name)
+
+    def __setattr__(self, name, value):
+        for component in self.__data__.get('_components', {}).values():
+            if name in component._fields:
+                self.__data__['_data'][name] = value
+        self.__data__[name] = value
+
+    def __delattr__(self, name):
+        for component in self.__data__.get('_components', {}).values():
+            if name in component._fields:
+                del self.__data__['_data'][name]
+        del self.__data__[name]
+
     def __contains__(self, key):
         return key in self._components
 
