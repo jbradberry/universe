@@ -1,110 +1,121 @@
-from decimal import Decimal
-import random
+from . import components, systems
+from .orders import (Move, CargoTransfer, Scrap, BuildInstallation, Terraform,
+                     BuildStation, BuildShip, LaunchMassPacket)
 
 
-class GameState(object):
+class Entity:
+    def __init__(self, registry, data):
+        self._data = data
+        self._components = registry[data['type']]
+
+    def __getattr__(self, name):
+        for component in self.__dict__.get('_components', {}).values():
+            if name in component._fields:
+                return self.__dict__['_data'][name]
+        return self.__dict__.get(name)
+
+    def __setattr__(self, name, value):
+        for component in self.__dict__.get('_components', {}).values():
+            if name in component._fields:
+                self.__dict__['_data'][name] = value
+        self.__dict__[name] = value
+
+    def __delattr__(self, name):
+        for component in self.__dict__.get('_components', {}).values():
+            if name in component._fields:
+                del self.__dict__['_data'][name]
+        del self.__dict__[name]
+
+    def __contains__(self, key):
+        return key in self._components
+
+    def serialize(self):
+        data = {'type': self._data['type']}
+        for _type, component in self._components.items():
+            data.update(component.serialize(self._data))
+        return data
+
+
+class Manager:
+    def __init__(self):
+        self._components = {}
+        self._systems = []
+        self._updates = {}
+
+        self._entity_registry = {}
+
+    def register_system(self, system):
+        self._systems.append(system)
+
+    def register_entity_type(self, name, _components):
+        if name in self._entity_registry:
+            raise ValueError("{} is already a registered entity type.".format(name))
+        _components.append(components.MetadataComponent())
+        self._entity_registry[name] = {component.name: component for component in _components}
+
+    def get_updates(self, _id):
+        return self._updates.get(_id, [])
+
+    def get_entities(self, _type):
+        return self._components.get(_type, {})
+
+    def get_entity(self, _type, _id):
+        return self._components.get(_type, {}).get(_id)
+
+    def set_entity(self, _type, _id, entity):
+        self._components.setdefault(_type, {})[_id] = entity
+
+    def register_entity(self, _id, entity):
+        entity_obj = Entity(self._entity_registry, entity)
+        for component in entity_obj._components:
+            self._components.setdefault(component, {})[_id] = entity_obj
+
+    def process(self):
+        for system_cls in self._systems:
+            system = system_cls()
+            system.process(self)
+
+    def import_data(self, data, updates):
+        for _id, entity in (data.get('entities') or {}).items():
+            self.register_entity(_id, entity)
+        self._updates = updates
+
+    def export_data(self):
+        data = {_id: entity for _id, entity in self._components.get('metadata', {}).items()}
+
+        return {'entities': {_id: entity.serialize() for _id, entity in data.items()}}
+
+
+class GameState:
     def __init__(self, state, updates):
         self.old = state
         self.updates = updates
+
+        self.manager = Manager()
+        self.manager.register_system(systems.UpdateSystem)
+        self.manager.register_system(systems.MovementSystem)
+
+        self.manager.register_entity_type('ship', [
+            components.PositionComponent(),
+            components.QueueComponent([Move, CargoTransfer, Scrap]),
+        ])
+        self.manager.register_entity_type('planet', [
+            components.PositionComponent(),
+            components.QueueComponent([
+                BuildInstallation, Terraform, BuildStation, BuildShip, LaunchMassPacket,
+            ]),
+        ])
 
         self.new = {}
 
     def generate(self):
         self.new_headers()
-        self.merge_updates()
-        self.process_movement()
-        self.post_process()
+
+        self.manager.import_data(self.old, self.updates)
+        self.manager.process()
+        self.new.update(self.manager.export_data())
 
         return self.new
 
     def new_headers(self):
         self.new.update(turn=self.old['turn'] + 1, width=self.old['width'])
-
-    def merge_updates(self):
-        indexed_actions = {
-            loc_id: dict(enumerate(action_list))
-            for loc_id, action_list in self.old['actions'].items()
-        }
-
-        for action in self.updates:
-            loc_id = action.pop('locatable_id')
-            seq = action.pop('seq')
-            indexed_actions.setdefault(loc_id, {})[seq] = action
-
-        self.actions = {
-            loc_id: [action for seq, action in sorted(actions.items())]
-            for loc_id, actions in indexed_actions.items()
-        }
-
-    def process_movement(self):
-        movements = {
-            loc_id: actions[0]
-            for loc_id, actions in self.actions.items()
-            if actions
-        }
-        while movements:
-            update = False
-            for loc_id in list(movements.keys()):
-                move = movements[loc_id]
-                if 'target_id' not in move:
-                    self._do_move(loc_id, move)
-                elif move['target_id'] not in movements:
-                    self._do_move(loc_id, move)
-                else:
-                    continue
-
-                update = True
-                del movements[loc_id]
-
-            if not update:
-                loc_id = random.choice(list(movements.keys()))
-                self._do_move(loc_id, movements[loc_id])
-                del movements[loc_id]
-
-        # drop any waypoints that have been reached
-        for loc_id, actions in self.actions.items():
-            move = actions[0]
-            locatable = self.old['locatables'][loc_id]
-            x, y = locatable['x'], locatable['y']
-            if 'target_id' in move:
-                target = self.old['locatables'][move['target_id']]
-                x_t, y_t = target['x'], target['y']
-            else:
-                x_t, y_t = move['x_t'], move['y_t']
-
-            if (x, y) == (x_t, y_t):
-                actions.pop(0)
-
-        self.new['locatables'] = self.old['locatables']
-        self.new['actions'] = self.actions
-
-    def _do_move(self, loc_id, move):
-        locatable = self.old['locatables'][loc_id]
-
-        speed = move['speed'] ** 2
-        x, y = locatable['x'], locatable['y']
-        if 'target_id' in move:
-            target = self.old['locatables'][move['target_id']]
-            x_t, y_t = target['x'], target['y']
-        else:
-            x_t, y_t = move['x_t'], move['y_t']
-
-        dx, dy = x_t - x, y_t - y
-        D = Decimal(dx**2 + dy**2).sqrt()
-
-        if D.to_integral_value() <= speed:
-            x_new, y_new = x_t, y_t
-        else:
-            x_new = x + int((speed * dx / D).to_integral_value())
-            y_new = y + int((speed * dy / D).to_integral_value())
-
-        locatable.update(x=x_new, y=y_new)
-
-    def post_process(self):
-        loc_ids = [
-            loc_id for loc_id, actions in self.new['actions'].items()
-            if not actions
-        ]
-
-        for loc_id in loc_ids:
-            del self.new['actions'][loc_id]
