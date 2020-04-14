@@ -22,6 +22,12 @@ class Component(metaclass=MetaComponent):
                 if name in data}
 
 
+class MetadataComponent(Component):
+    name = 'metadata'
+
+    type = fields.CharField(required=True)
+
+
 class PositionComponent(Component):
     name = 'position'
 

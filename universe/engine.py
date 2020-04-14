@@ -47,10 +47,11 @@ class Manager:
     def register_system(self, system):
         self._systems.append(system)
 
-    def register_entity_type(self, name, components):
+    def register_entity_type(self, name, _components):
         if name in self._entity_registry:
             raise ValueError("{} is already a registered entity type.".format(name))
-        self._entity_registry[name] = {component.name: component for component in components}
+        _components.append(components.MetadataComponent())
+        self._entity_registry[name] = {component.name: component for component in _components}
 
     def get_updates(self, _id):
         return self._updates.get(_id, [])
