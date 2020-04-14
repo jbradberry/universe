@@ -1,6 +1,10 @@
 from . import fields
 
 
+class ValidationError(Exception):
+    pass
+
+
 class MetaComponent(type):
     def __new__(cls, name, bases, attrs, **kwargs):
         super_new = super().__new__
@@ -18,8 +22,13 @@ class MetaComponent(type):
 
 class Component(metaclass=MetaComponent):
     def serialize(self, data):
-        return {name: data[name] for name, field in self._fields.items()
-                if name in data}
+        output = {}
+        for name, field in self._fields.items():
+            if name in data:
+                output[name] = data[name]
+            elif getattr(field, 'required', True):
+                raise ValidationError(f"{name} is required.")
+        return output
 
 
 class MetadataComponent(Component):
