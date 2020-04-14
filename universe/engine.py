@@ -81,9 +81,7 @@ class Manager:
         self._updates = updates
 
     def export_data(self):
-        data = {}
-        data.update((_id, entity) for _id, entity in self._components.get('position', {}).items())
-        data.update((_id, entity) for _id, entity in self._components.get('queue', {}).items())
+        data = {_id: entity for _id, entity in self._components.get('metadata', {}).items()}
 
         return {'entities': {_id: entity.serialize() for _id, entity in data.items()}}
 
