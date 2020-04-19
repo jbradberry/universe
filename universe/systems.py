@@ -1,5 +1,4 @@
 from decimal import Decimal
-import random
 
 
 class UpdateSystem:
@@ -16,7 +15,7 @@ class UpdateSystem:
 
 
 class MovementSystem:
-    N = 100
+    N = 1000
 
     def _vector_to_target(self, entity, manager):
         move = entity.queue[0]
@@ -37,8 +36,15 @@ class MovementSystem:
         else:
             entity.dx, entity.dy = speed * dx / D, speed * dy / D
 
-        # The frozen 'observable' vector of this object.
-        entity._dx, entity._dy = entity.dx, entity.dy
+        # The naive prediction of the endpoint for this object
+        remaining = self.N - self.step
+        x_p = (entity.x + remaining * entity.dx).to_integral_value()
+        y_p = (entity.y + remaining * entity.dy).to_integral_value()
+        if 'x_p' not in entity.__dict__:
+            entity.x_p, entity.y_p = x_p, y_p
+        # If the projected endpoint is not stable, intercepting objects should just use Euler.
+        if (entity.x_p, entity.y_p) != (x_p, y_p):
+            entity.x_p, entity.y_p = None, None
 
     def _vector_to_projection(self, entity, manager):
         # Update the real vector of this object based on the (non-updated) observable vector of its target.
@@ -46,16 +52,15 @@ class MovementSystem:
         if 'target_id' not in move:
             return
 
-        speed = Decimal(move['warp'] ** 2) / self.N
         target_entity = manager.get_entity('position', move['target_id'])
-        x_t, y_t = target_entity.x, target_entity.y
-        dx_t, dy_t = target_entity._dx or Decimal(0), target_entity._dy or Decimal(0)
+        # Only proceed with moving towards the target's projected endpoint if it is stable.
+        if target_entity.x_p is None:
+            return
 
-        remaining = self.N - self.step
-        x_p, y_p = x_t + remaining * dx_t, y_t + remaining * dy_t
+        x_p, y_p = target_entity.x_p, target_entity.y_p
+        dx, dy = x_p - entity.x, y_p - entity.y
 
-        dx, dy = Decimal(x_p).to_integral_value() - entity.x, Decimal(y_p).to_integral_value() - entity.y
-
+        speed = Decimal(move['warp'] ** 2) / self.N
         D = Decimal(dx ** 2 + dy ** 2).sqrt()
         if D.to_integral_value() <= speed:
             entity.dx, entity.dy = dx, dy

@@ -196,7 +196,7 @@ class MovementTestCase(unittest.TestCase):
         # i.e. roughly 35 lightyears in each direction
         self.assertEqual(
             results['entities'],
-            {0: {'type': 'ship', 'x': 525, 'x_prev': 560, 'y': 230, 'y_prev': 315,
+            {0: {'type': 'ship', 'x': 524, 'x_prev': 560, 'y': 230, 'y_prev': 315,
                  'queue': [{'target_id': 1, 'warp': 10}]},
              1: {'type': 'ship', 'x': 510, 'x_prev': 460, 'y': 215, 'y_prev': 215, 'queue': []}}
         )
@@ -213,8 +213,8 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['turn'], 2501)
         self.assertEqual(results['width'], 1000)
         self.assertEqual(len(results['entities']), 2)
-        self.assertEqual(results['entities'][0]['x'], results['entities'][1]['x'])
-        self.assertEqual(results['entities'][0]['y'], results['entities'][1]['y'])
+        coordinates = {(entity['x'], entity['y']) for entity in results['entities'].values()}
+        self.assertEqual(coordinates, {(470, 225)})
         self.assertEqual(results['entities'][0]['queue'], [])
         self.assertEqual(results['entities'][1]['queue'], [])
 
@@ -231,9 +231,8 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['turn'], 2501)
         self.assertEqual(results['width'], 1000)
         self.assertEqual(len(results['entities']), 3)
-
-        self.assertEqual({(entity['x'], entity['y']) for entity in results['entities'].values()},
-                         {(480, 219)})
+        coordinates = {(entity['x'], entity['y']) for entity in results['entities'].values()}
+        self.assertEqual(coordinates, {(480, 217)})
         self.assertTrue(all(not entity['queue'] for entity in results['entities'].values()))
 
     def test_four_way_cycle_intercept(self):
@@ -251,5 +250,5 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['width'], 1000)
         self.assertEqual(len(results['entities']), 4)
         coordinates = {(entity['x'], entity['y']) for entity in results['entities'].values()}
-        self.assertEqual(len(coordinates), 1)
+        self.assertEqual(coordinates, {(550, 550)})
         self.assertTrue(all(not entity['queue'] for entity in results['entities'].values()))
