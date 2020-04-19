@@ -231,13 +231,10 @@ class MovementTestCase(unittest.TestCase):
         self.assertEqual(results['turn'], 2501)
         self.assertEqual(results['width'], 1000)
         self.assertEqual(len(results['entities']), 3)
-        self.assertEqual(results['entities'][0]['x'], results['entities'][1]['x'])
-        self.assertEqual(results['entities'][1]['x'], results['entities'][2]['x'])
-        self.assertEqual(results['entities'][0]['y'], results['entities'][1]['y'])
-        self.assertEqual(results['entities'][1]['y'], results['entities'][2]['y'])
-        self.assertEqual(results['entities'][0]['queue'], [])
-        self.assertEqual(results['entities'][1]['queue'], [])
-        self.assertEqual(results['entities'][2]['queue'], [])
+
+        self.assertEqual({(entity['x'], entity['y']) for entity in results['entities'].values()},
+                         {(480, 219)})
+        self.assertTrue(all(not entity['queue'] for entity in results['entities'].values()))
 
     def test_four_way_cycle_intercept(self):
         state = {'turn': 2500, 'width': 1000,

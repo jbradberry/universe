@@ -28,7 +28,8 @@ class MovementSystem:
         else:
             x_t, y_t = move['x_t'], move['y_t']
 
-        dx, dy = x_t - entity.x, y_t - entity.y
+        # Aim for the midpoint of the 1-light-year sector the goal is in.
+        dx, dy = Decimal(x_t).to_integral_value() - entity.x, Decimal(y_t).to_integral_value() - entity.y
 
         D = Decimal(dx ** 2 + dy ** 2).sqrt()
         if D.to_integral_value() <= speed:
@@ -36,7 +37,11 @@ class MovementSystem:
         else:
             entity.dx, entity.dy = speed * dx / D, speed * dy / D
 
+        # The frozen 'observable' vector of this object.
+        entity._dx, entity._dy = entity.dx, entity.dy
+
     def _vector_to_projection(self, entity, manager):
+        # Update the real vector of this object based on the (non-updated) observable vector of its target.
         move = entity.queue[0]
         if 'target_id' not in move:
             return
@@ -44,12 +49,12 @@ class MovementSystem:
         speed = Decimal(move['warp'] ** 2) / self.N
         target_entity = manager.get_entity('position', move['target_id'])
         x_t, y_t = target_entity.x, target_entity.y
-        dx_t, dy_t = target_entity.dx or 0, target_entity.dy or 0
+        dx_t, dy_t = target_entity._dx or Decimal(0), target_entity._dy or Decimal(0)
 
         remaining = self.N - self.step
         x_p, y_p = x_t + remaining * dx_t, y_t + remaining * dy_t
 
-        dx, dy = x_p - entity.x, y_p - entity.y
+        dx, dy = Decimal(x_p).to_integral_value() - entity.x, Decimal(y_p).to_integral_value() - entity.y
 
         D = Decimal(dx ** 2 + dy ** 2).sqrt()
         if D.to_integral_value() <= speed:
@@ -75,7 +80,8 @@ class MovementSystem:
                 self._vector_to_projection(entity, manager)
 
             for entity in movements.values():
-                entity.x, entity.y = entity.x + entity.dx, entity.y + entity.dy
+                dx, dy = entity.dx or Decimal(0), entity.dy or Decimal(0)
+                entity.x, entity.y = entity.x + dx, entity.y + dy
 
         for _id, entity in movements.items():
             entity.x, entity.y = int(entity.x.to_integral_value()), int(entity.y.to_integral_value())
