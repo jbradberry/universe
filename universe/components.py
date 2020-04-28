@@ -67,3 +67,9 @@ class OwnershipComponent(Component):
     name = 'ownership'
 
     owner_id = fields.IntField(required=False)
+
+
+class PopulationComponent(Component):
+    name = 'population'
+
+    population = fields.IntField(required=False)

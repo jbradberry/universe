@@ -99,6 +99,7 @@ class GameState:
             components.PositionComponent(),
             components.QueueComponent([Move, CargoTransfer, Scrap,]),
             components.OwnershipComponent(),
+            components.PopulationComponent(),
         ])
         self.manager.register_entity_type('planet', [
             components.PositionComponent(),
@@ -106,6 +107,7 @@ class GameState:
                 BuildInstallation, Terraform, BuildStation, BuildShip, LaunchMassPacket,
             ]),
             components.OwnershipComponent(),
+            components.PopulationComponent(),
         ])
         self.manager.register_entity_type('species', [
             components.SpeciesComponent(),
