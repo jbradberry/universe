@@ -54,3 +54,16 @@ class QueueComponent(Component):
 
     def __init__(self, order_types):
         self._order_types = order_types
+
+
+class SpeciesComponent(Component):
+    name = 'species'
+
+    singular_name = fields.CharField(required=True)
+    plural_name = fields.CharField(required=True)
+
+
+class OwnershipComponent(Component):
+    name = 'ownership'
+
+    owner_id = fields.IntField(required=False)
