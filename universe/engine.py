@@ -11,7 +11,7 @@ class Entity:
     def __getattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
             if name in component._fields:
-                return self.__dict__['_data'][name]
+                return self.__dict__['_data'].get(name)
         return self.__dict__.get(name)
 
     def __setattr__(self, name, value):
@@ -94,6 +94,7 @@ class GameState:
         self.manager = Manager()
         self.manager.register_system(systems.UpdateSystem)
         self.manager.register_system(systems.MovementSystem)
+        self.manager.register_system(systems.PopulationGrowthSystem)
 
         self.manager.register_entity_type('ship', [
             components.PositionComponent(),
