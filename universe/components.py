@@ -61,3 +61,9 @@ class SpeciesComponent(Component):
 
     singular_name = fields.CharField(required=True)
     plural_name = fields.CharField(required=True)
+
+
+class OwnershipComponent(Component):
+    name = 'ownership'
+
+    owner_id = fields.IntField(required=False)
