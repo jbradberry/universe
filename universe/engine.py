@@ -105,6 +105,9 @@ class GameState:
                 BuildInstallation, Terraform, BuildStation, BuildShip, LaunchMassPacket,
             ]),
         ])
+        self.manager.register_entity_type('species', [
+            components.SpeciesComponent(),
+        ])
 
         self.new = {}
 
