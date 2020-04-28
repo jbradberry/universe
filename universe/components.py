@@ -61,6 +61,7 @@ class SpeciesComponent(Component):
 
     singular_name = fields.CharField(required=True)
     plural_name = fields.CharField(required=True)
+    growth_rate = fields.IntField(required=True)
 
 
 class OwnershipComponent(Component):

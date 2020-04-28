@@ -105,3 +105,17 @@ class MovementSystem:
 
             if (x, y) == (x_t, y_t):
                 entity.queue.pop(0)
+
+
+class PopulationGrowth:
+    def process(self, manager):
+        for _id, entity in manager.get_entities('population').items():
+            population = entity.population
+            if entity.type == 'ship':
+                continue
+            species = manager.get_entity('species', entity.owner_id)
+            if species is None:
+                continue
+            growth_rate = 1 + Decimal(species.growth_rate) / 100
+            population *= growth_rate
+            entity.population = population.to_integral_value()
