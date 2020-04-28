@@ -61,9 +61,16 @@ class SpeciesComponent(Component):
 
     singular_name = fields.CharField(required=True)
     plural_name = fields.CharField(required=True)
+    growth_rate = fields.IntField(required=True)
 
 
 class OwnershipComponent(Component):
     name = 'ownership'
 
     owner_id = fields.IntField(required=False)
+
+
+class PopulationComponent(Component):
+    name = 'population'
+
+    population = fields.IntField(required=False)
