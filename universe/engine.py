@@ -51,7 +51,7 @@ class Manager:
         if name in self._entity_registry:
             raise ValueError("{} is already a registered entity type.".format(name))
         _components.append(components.MetadataComponent())
-        self._entity_registry[name] = {component.name: component for component in _components}
+        self._entity_registry[name] = {component._name: component for component in _components}
 
     def get_updates(self, _id):
         return self._updates.get(_id, [])

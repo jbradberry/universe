@@ -32,13 +32,13 @@ class Component(metaclass=MetaComponent):
 
 
 class MetadataComponent(Component):
-    name = 'metadata'
+    _name = 'metadata'
 
     type = fields.CharField(required=True)
 
 
 class PositionComponent(Component):
-    name = 'position'
+    _name = 'position'
 
     x = fields.IntField()
     y = fields.IntField()
@@ -48,7 +48,7 @@ class PositionComponent(Component):
 
 
 class QueueComponent(Component):
-    name = 'queue'
+    _name = 'queue'
 
     queue = fields.ListField()
 
@@ -57,20 +57,20 @@ class QueueComponent(Component):
 
 
 class SpeciesComponent(Component):
-    name = 'species'
+    _name = 'species'
 
-    singular_name = fields.CharField(required=True)
+    name = fields.CharField(required=True)
     plural_name = fields.CharField(required=True)
     growth_rate = fields.IntField(required=True)
 
 
 class OwnershipComponent(Component):
-    name = 'ownership'
+    _name = 'ownership'
 
     owner_id = fields.IntField(required=False)
 
 
 class PopulationComponent(Component):
-    name = 'population'
+    _name = 'population'
 
     population = fields.IntField(required=False)

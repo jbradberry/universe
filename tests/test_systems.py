@@ -12,7 +12,7 @@ class PopulationTestCase(unittest.TestCase):
             'entities': {
                 0: {
                     'type': 'species',
-                    'singular_name': 'Human',
+                    'name': 'Human',
                     'plural_name': 'Humans',
                     'growth_rate': 15,
                 },
@@ -36,7 +36,7 @@ class PopulationTestCase(unittest.TestCase):
                           'entities': {
                               0: {
                                   'type': 'species',
-                                  'singular_name': 'Human',
+                                  'name': 'Human',
                                   'plural_name': 'Humans',
                                   'growth_rate': 15,
                                   },
