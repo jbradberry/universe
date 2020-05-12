@@ -12,7 +12,10 @@ class Entity:
         for component in self.__dict__.get('_components', {}).values():
             if name in component._fields:
                 return self.__dict__['_data'].get(name)
-        return self.__dict__.get(name)
+        try:
+            return self.__dict__[name]
+        except KeyError:
+            raise AttributeError(f"{self.__class__.__name__!r} object has no attribute {name!r}")
 
     def __setattr__(self, name, value):
         for component in self.__dict__.get('_components', {}).values():

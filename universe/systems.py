@@ -40,7 +40,7 @@ class MovementSystem:
         remaining = self.N - self.step
         x_p = (entity.x + remaining * entity.dx).to_integral_value()
         y_p = (entity.y + remaining * entity.dy).to_integral_value()
-        if 'x_p' not in entity.__dict__:
+        if not hasattr(entity, 'x_p'):
             entity.x_p, entity.y_p = x_p, y_p
         # If the projected endpoint is not stable, intercepting objects should just use Euler.
         if (entity.x_p, entity.y_p) != (x_p, y_p):
@@ -54,7 +54,7 @@ class MovementSystem:
 
         target_entity = manager.get_entity('position', move['target_id'])
         # Only proceed with moving towards the target's projected endpoint if it is stable.
-        if target_entity.x_p is None:
+        if getattr(target_entity, 'x_p', None) is None:
             return
 
         x_p, y_p = target_entity.x_p, target_entity.y_p
