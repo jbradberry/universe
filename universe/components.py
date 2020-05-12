@@ -74,3 +74,11 @@ class PopulationComponent(Component):
     _name = 'population'
 
     population = fields.IntField(required=False)
+
+
+class EnvironmentComponent(Component):
+    _name = 'environment'
+
+    gravity = fields.IntField(min=0, max=100)
+    temperature = fields.IntField(min=0, max=100)
+    radiation = fields.IntField(min=0, max=100)
