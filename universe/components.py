@@ -1,4 +1,5 @@
 import math
+import random
 
 from . import fields
 
@@ -109,3 +110,14 @@ class EnvironmentComponent(Component):
 
     def _display_radiation(self, value):
         return f"{value}mR"
+
+    @classmethod
+    def random(cls):
+        # Random weights taken from http://stars.arglos.net/articles/hm-charts.html
+
+        weights = list(range(1, 10)) + [10] * 81 + list(reversed(range(1, 10)))
+        return {
+            'gravity': random.choices(list(range(1, 100)), weights=weights)[0],
+            'temperature': random.choices(list(range(1, 100)), weights=weights)[0],
+            'radiation': random.randint(1, 99),
+        }

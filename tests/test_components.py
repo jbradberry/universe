@@ -40,3 +40,12 @@ class EnvironmentComponentTestCase(unittest.TestCase):
             component.display(data),
             {'gravity': "0.536g", 'temperature': "48°C", 'radiation': "50mR"}
         )
+
+    def test_random(self):
+        data = components.EnvironmentComponent.random()
+        self.assertGreaterEqual(data['gravity'], 1)
+        self.assertLessEqual(data['gravity'], 99)
+        self.assertGreaterEqual(data['temperature'], 1)
+        self.assertLessEqual(data['temperature'], 99)
+        self.assertGreaterEqual(data['radiation'], 1)
+        self.assertLessEqual(data['radiation'], 99)
