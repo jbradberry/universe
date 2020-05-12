@@ -1,3 +1,5 @@
+import math
+
 from . import fields
 
 
@@ -26,6 +28,20 @@ class Component(metaclass=MetaComponent):
         for name, field in self._fields.items():
             if name in data:
                 output[name] = data[name]
+            elif getattr(field, 'required', True):
+                raise ValidationError(f"{name} is required.")
+        return output
+
+    def display(self, data):
+        output = {}
+        for name, field in self._fields.items():
+            if name in data:
+                value = data[name]
+                if hasattr(self, f'_display_{name}'):
+                    value = getattr(self, f'_display_{name}')(value)
+                else:
+                    value = str(value)
+                output[name] = value
             elif getattr(field, 'required', True):
                 raise ValidationError(f"{name} is required.")
         return output
@@ -82,3 +98,14 @@ class EnvironmentComponent(Component):
     gravity = fields.IntField(min=0, max=100)
     temperature = fields.IntField(min=0, max=100)
     radiation = fields.IntField(min=0, max=100)
+
+    def _display_gravity(self, value):
+        gravity = math.pow(2, 6. * value / 100 - 3)
+        return f"{gravity:0.3f}g"
+
+    def _display_temperature(self, value):
+        temp = 4 * value - 200
+        return f"{temp}\u00b0C"
+
+    def _display_radiation(self, value):
+        return f"{value}mR"
