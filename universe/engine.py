@@ -107,6 +107,7 @@ class GameState:
         ])
         self.manager.register_entity_type('planet', [
             components.PositionComponent(),
+            components.EnvironmentComponent(),
             components.QueueComponent([
                 BuildInstallation, Terraform, BuildStation, BuildShip, LaunchMassPacket,
             ]),
