@@ -121,3 +121,11 @@ class EnvironmentComponent(Component):
             'temperature': random.choices(list(range(1, 100)), weights=weights)[0],
             'radiation': random.randint(1, 99),
         }
+
+
+class MineralConcentrationComponent(Component):
+    _name = 'mineral_concentrations'
+
+    ironium_conc = fields.IntField(min=0, max=100)
+    boranium_conc = fields.IntField(min=0, max=100)
+    germanium_conc = fields.IntField(min=0, max=100)
