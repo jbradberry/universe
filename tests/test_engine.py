@@ -3,6 +3,124 @@ import unittest
 from universe import engine
 
 
+class PersistenceTestCase(unittest.TestCase):
+    def test_planet(self):
+        state = {
+            'turn': 2500,
+            'width': 1000,
+            'entities': {
+                0: {
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                },
+                1: {
+                    'type': 'planet',
+                    'x': 300,
+                    'y': 600,
+                    'gravity': 27,
+                    'temperature': 36,
+                    'radiation': 45,
+                    'ironium_conc': 67,
+                    'boranium_conc': 78,
+                    'germanium_conc': 82,
+                    'ironium': 20,
+                    'boranium': 30,
+                    'germanium': 40,
+                    'queue': [],
+                    'owner_id': 0,
+                    'population': 1000,
+                }
+            }
+        }
+
+        S = engine.GameState(state, {})
+        results = S.generate()
+
+        self.assertEqual(results['turn'], 2501)
+        self.assertIn(1, results['entities'])
+        self.assertEqual(results['entities'][1]['type'], 'planet')
+        self.assertEqual(results['entities'][1]['x'], 300)
+        self.assertEqual(results['entities'][1]['y'], 600)
+        self.assertEqual(results['entities'][1]['gravity'], 27)
+        self.assertEqual(results['entities'][1]['temperature'], 36)
+        self.assertEqual(results['entities'][1]['radiation'], 45)
+        self.assertEqual(results['entities'][1]['ironium_conc'], 67)
+        self.assertEqual(results['entities'][1]['boranium_conc'], 78)
+        self.assertEqual(results['entities'][1]['germanium_conc'], 82)
+        self.assertEqual(results['entities'][1]['ironium'], 20)
+        self.assertEqual(results['entities'][1]['boranium'], 30)
+        self.assertEqual(results['entities'][1]['germanium'], 40)
+        self.assertEqual(results['entities'][1]['queue'], [])
+        self.assertEqual(results['entities'][1]['owner_id'], 0)
+        self.assertGreater(results['entities'][1]['population'], 0)
+
+    def test_ship(self):
+        state = {
+            'turn': 2500,
+            'width': 1000,
+            'entities': {
+                0: {
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                },
+                1: {
+                    'type': 'ship',
+                    'x': 300,
+                    'y': 600,
+                    'ironium': 20,
+                    'boranium': 30,
+                    'germanium': 40,
+                    'queue': [],
+                    'owner_id': 0,
+                    'population': 1000,
+                }
+            }
+        }
+
+        S = engine.GameState(state, {})
+        results = S.generate()
+
+        self.assertEqual(results['turn'], 2501)
+        self.assertIn(1, results['entities'])
+        self.assertEqual(results['entities'][1]['type'], 'ship')
+        self.assertEqual(results['entities'][1]['x'], 300)
+        self.assertEqual(results['entities'][1]['y'], 600)
+        self.assertEqual(results['entities'][1]['ironium'], 20)
+        self.assertEqual(results['entities'][1]['boranium'], 30)
+        self.assertEqual(results['entities'][1]['germanium'], 40)
+        self.assertEqual(results['entities'][1]['queue'], [])
+        self.assertEqual(results['entities'][1]['owner_id'], 0)
+        self.assertGreater(results['entities'][1]['population'], 0)
+
+    def test_species(self):
+        state = {
+            'turn': 2500,
+            'width': 1000,
+            'entities': {
+                0: {
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                },
+            }
+        }
+
+        S = engine.GameState(state, {})
+        results = S.generate()
+
+        self.assertEqual(results['turn'], 2501)
+        self.assertIn(0, results['entities'])
+        self.assertEqual(results['entities'][0]['type'], 'species')
+        self.assertEqual(results['entities'][0]['name'], 'Human')
+        self.assertEqual(results['entities'][0]['plural_name'], 'Humans')
+        self.assertEqual(results['entities'][0]['growth_rate'], 15)
+
+
 class MovementTestCase(unittest.TestCase):
     def test_empty_universe(self):
         state = {'turn': 2500, 'width': 1000, 'entities': {}}

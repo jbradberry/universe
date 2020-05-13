@@ -104,11 +104,13 @@ class GameState:
             components.QueueComponent([Move, CargoTransfer, Scrap,]),
             components.OwnershipComponent(),
             components.PopulationComponent(),
+            components.MineralInventoryComponent(),
         ])
         self.manager.register_entity_type('planet', [
             components.PositionComponent(),
             components.EnvironmentComponent(),
             components.MineralConcentrationComponent(),
+            components.MineralInventoryComponent(),
             components.QueueComponent([
                 BuildInstallation, Terraform, BuildStation, BuildShip, LaunchMassPacket,
             ]),

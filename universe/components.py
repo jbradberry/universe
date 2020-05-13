@@ -129,3 +129,11 @@ class MineralConcentrationComponent(Component):
     ironium_conc = fields.IntField(min=0, max=100)
     boranium_conc = fields.IntField(min=0, max=100)
     germanium_conc = fields.IntField(min=0, max=100)
+
+
+class MineralInventoryComponent(Component):
+    _name = 'minerals'
+
+    ironium = fields.IntField(min=0, required=False)
+    boranium = fields.IntField(min=0, required=False)
+    germanium = fields.IntField(min=0, required=False)
