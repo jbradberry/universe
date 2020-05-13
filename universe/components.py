@@ -130,6 +130,14 @@ class MineralConcentrationComponent(Component):
     boranium_conc = fields.IntField(min=0, max=100)
     germanium_conc = fields.IntField(min=0, max=100)
 
+    @classmethod
+    def random(cls):
+        return {
+            'ironium_conc': random.randint(1, 99),
+            'boranium_conc': random.randint(1, 99),
+            'germanium_conc': random.randint(1, 99),
+        }
+
 
 class MineralInventoryComponent(Component):
     _name = 'minerals'
