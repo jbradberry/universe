@@ -1,11 +1,7 @@
 import math
 import random
 
-from . import fields
-
-
-class ValidationError(Exception):
-    pass
+from . import fields, exceptions
 
 
 class MetaComponent(type):
@@ -30,7 +26,7 @@ class Component(metaclass=MetaComponent):
             if name in data:
                 output[name] = data[name]
             elif getattr(field, 'required', True):
-                raise ValidationError(f"{name} is required.")
+                raise exceptions.ValidationError(f"{name} is required.")
         return output
 
     def display(self, data):
@@ -44,7 +40,7 @@ class Component(metaclass=MetaComponent):
                     value = str(value)
                 output[name] = value
             elif getattr(field, 'required', True):
-                raise ValidationError(f"{name} is required.")
+                raise exceptions.ValidationError(f"{name} is required.")
         return output
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-from universe import components
+from universe import components, exceptions
 
 
 class MetadataComponentTestCase(unittest.TestCase):
@@ -13,7 +13,7 @@ class MetadataComponentTestCase(unittest.TestCase):
     def test_missing_required_field(self):
         data = {}
         component = components.MetadataComponent()
-        with self.assertRaises(components.ValidationError):
+        with self.assertRaises(exceptions.ValidationError):
             component.serialize(data)
 
 
