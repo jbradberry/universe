@@ -49,3 +49,20 @@ class EnvironmentComponentTestCase(unittest.TestCase):
         self.assertLessEqual(data['temperature'], 99)
         self.assertGreaterEqual(data['radiation'], 1)
         self.assertLessEqual(data['radiation'], 99)
+
+        # no ValidationError is raised
+        self.assertTrue(components.EnvironmentComponent().serialize(data))
+
+
+class MineralConcentrationComponentTestCase(unittest.TestCase):
+    def test_random(self):
+        data = components.MineralConcentrationComponent.random()
+        self.assertGreaterEqual(data['ironium_conc'], 1)
+        self.assertLessEqual(data['ironium_conc'], 99)
+        self.assertGreaterEqual(data['boranium_conc'], 1)
+        self.assertLessEqual(data['boranium_conc'], 99)
+        self.assertGreaterEqual(data['germanium_conc'], 1)
+        self.assertLessEqual(data['germanium_conc'], 99)
+
+        # no ValidationError is raised
+        self.assertTrue(components.MineralConcentrationComponent().serialize(data))
