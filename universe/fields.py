@@ -10,6 +10,17 @@ class Field:
             raise exceptions.ValidationError(f"{self.name!r} is required.")
 
 
+class BooleanField(Field):
+    def __init__(self):
+        super().__init__()
+
+    def validate(self, data):
+        super().validate(data)
+        value = data[self.name]
+        if not isinstance(value, bool):
+            raise exceptions.ValidationError(f"{self.name!r} must be a boolean.")
+
+
 class IntField(Field):
     def __init__(self, min=None, max=None, **kwargs):
         super().__init__(**kwargs)
