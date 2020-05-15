@@ -81,6 +81,48 @@ class SpeciesComponent(Component):
     plural_name = fields.CharField(required=True)
     growth_rate = fields.IntField(required=True)
 
+    gravity_min = fields.IntField(min=0, max=100, required=False)
+    gravity_max = fields.IntField(min=0, max=100, required=False)
+    gravity_immune = fields.BooleanField()
+
+    temperature_min = fields.IntField(min=0, max=100, required=False)
+    temperature_max = fields.IntField(min=0, max=100, required=False)
+    temperature_immune = fields.BooleanField()
+
+    radiation_min = fields.IntField(min=0, max=100, required=False)
+    radiation_max = fields.IntField(min=0, max=100, required=False)
+    radiation_immune = fields.BooleanField()
+
+    def validate(self, data):
+        super().validate(data)
+
+        if data['gravity_immune']:
+            if 'gravity_min' in data or 'gravity_max' in data:
+                raise exceptions.ValidationError(
+                    "'gravity_min' and 'gravity_max' may not be set if 'gravity_immune' is true.")
+        else:
+            if 'gravity_min' not in data or 'gravity_max' not in data:
+                raise exceptions.ValidationError(
+                    "'gravity_min' and 'gravity_max' must be set if 'gravity_immune' is false.")
+
+        if data['temperature_immune']:
+            if 'temperature_min' in data or 'temperature_max' in data:
+                raise exceptions.ValidationError(
+                    "'temperature_min' and 'temperature_max' may not be set if 'temperature_immune' is true.")
+        else:
+            if 'temperature_min' not in data or 'temperature_max' not in data:
+                raise exceptions.ValidationError(
+                    "'temperature_min' and 'temperature_max' must be set if 'temperature_immune' is false.")
+
+        if data['radiation_immune']:
+            if 'radiation_min' in data or 'radiation_max' in data:
+                raise exceptions.ValidationError(
+                    "'radiation_min' and 'radiation_max' may not be set if 'radiation_immune' is true.")
+        else:
+            if 'radiation_min' not in data or 'radiation_max' not in data:
+                raise exceptions.ValidationError(
+                    "'radiation_min' and 'radiation_max' must be set if 'radiation_immune' is false.")
+
 
 class OwnershipComponent(Component):
     _name = 'ownership'

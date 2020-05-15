@@ -15,6 +15,9 @@ class PopulationTestCase(unittest.TestCase):
                     'name': 'Human',
                     'plural_name': 'Humans',
                     'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
                 },
                 1: {
                     'type': 'planet',
@@ -47,6 +50,9 @@ class PopulationTestCase(unittest.TestCase):
                         'name': 'Human',
                         'plural_name': 'Humans',
                         'growth_rate': 15,
+                        'gravity_immune': True,
+                        'temperature_immune': True,
+                        'radiation_immune': True,
                     },
                     1: {
                         'type': 'planet',
@@ -78,6 +84,9 @@ class PopulationTestCase(unittest.TestCase):
                     'name': 'Human',
                     'plural_name': 'Humans',
                     'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
                 },
                 1: {
                     'type': 'planet',
