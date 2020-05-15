@@ -11,7 +11,7 @@ class FieldTestCase(unittest.TestCase):
 
         with self.assertRaises(exceptions.ValidationError) as e:
             field.validate({})
-        self.assertEqual(str(e.exception), "Field 'foo' is required.")
+        self.assertEqual(str(e.exception), "'foo' is required.")
 
     def test_not_required(self):
         field = fields.Field(required=False)
@@ -25,4 +25,50 @@ class FieldTestCase(unittest.TestCase):
 
         with self.assertRaises(exceptions.ValidationError) as e:
             field.validate({})
-        self.assertEqual(str(e.exception), "Field 'foo' is required.")
+        self.assertEqual(str(e.exception), "'foo' is required.")
+
+
+class IntFieldTestCase(unittest.TestCase):
+    def test_not_required(self):
+        field = fields.IntField(required=False)
+        field.name = 'widgets'
+
+        self.assertIsNone(field.validate({}))
+
+    def test_explicit_required(self):
+        field = fields.IntField(required=True)
+        field.name = 'widgets'
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            field.validate({})
+        self.assertEqual(str(e.exception), "'widgets' is required.")
+
+    def test_bad_type(self):
+        field = fields.IntField(required=True)
+        field.name = 'widgets'
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            field.validate({'widgets': 'a'})
+        self.assertEqual(str(e.exception), "'widgets' must be an integer.")
+
+    def test_in_range(self):
+        field = fields.IntField(min=0, max=100, required=True)
+        field.name = 'widgets'
+
+        self.assertIsNone(field.validate({'widgets': 42}))
+
+    def test_under_min(self):
+        field = fields.IntField(min=0, max=100, required=True)
+        field.name = 'widgets'
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            field.validate({'widgets': -10})
+        self.assertEqual(str(e.exception), "'widgets' must be greater than or equal to 0.")
+
+    def test_over_max(self):
+        field = fields.IntField(min=0, max=100, required=True)
+        field.name = 'widgets'
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            field.validate({'widgets': 200})
+        self.assertEqual(str(e.exception), "'widgets' must be less than or equal to 100.")
