@@ -7,7 +7,7 @@ class Field:
 
     def validate(self, data):
         if self.required and self.name not in data:
-            raise exceptions.ValidationError(f"{self.name} is required.")
+            raise exceptions.ValidationError(f"Field {self.name!r} is required.")
 
 
 class IntField(Field):
