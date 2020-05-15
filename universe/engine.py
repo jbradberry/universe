@@ -8,6 +8,9 @@ class Entity:
         self._data = data
         self._components = registry[data['type']]
 
+        for _type, component in self._components.items():
+            component.validate(data)
+
     def __getattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
             if name in component._fields:

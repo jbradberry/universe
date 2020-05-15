@@ -1,7 +1,52 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-from universe import components
+from universe import components, fields, exceptions
+
+
+class ComponentTestCase(unittest.TestCase):
+    class SpecialComponent(components.Component):
+        foo = fields.IntField(required=False)
+        bar = fields.IntField(required=False)
+
+        def validate(self, data):
+            super().validate(data)
+            if ('foo' in data) == ('bar' in data):
+                raise exceptions.ValidationError("Only one of 'foo' or 'bar' can be set.")
+
+        def validate_bar(self, data):
+            if 'bar' in data and data['bar'] % 2 != 0:
+                raise exceptions.ValidationError("'bar' must be even.")
+
+    def test_invalid_type_foo(self):
+        with self.assertRaises(exceptions.ValidationError) as e:
+            self.SpecialComponent().validate({'foo': 'a'})
+        self.assertEqual(str(e.exception), "'foo' must be an integer.")
+
+    def test_invalid_type_bar(self):
+        with self.assertRaises(exceptions.ValidationError) as e:
+            self.SpecialComponent().validate({'bar': 'a'})
+        self.assertEqual(str(e.exception), "'bar' must be an integer.")
+
+    def test_valid_foo(self):
+        self.assertIsNone(self.SpecialComponent().validate({'foo': 42}))
+
+    def test_valid_bar(self):
+        self.assertIsNone(self.SpecialComponent().validate({'bar': 42}))
+
+    def test_custom_field_validation(self):
+        with self.assertRaises(exceptions.ValidationError) as e:
+            self.SpecialComponent().validate({'bar': 3})
+        self.assertEqual(str(e.exception), "'bar' must be even.")
+
+    def test_custom_component_validation(self):
+        with self.assertRaises(exceptions.ValidationError) as e:
+            self.SpecialComponent().validate({})
+        self.assertEqual(str(e.exception), "Only one of 'foo' or 'bar' can be set.")
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            self.SpecialComponent().validate({'foo': 42, 'bar': 12})
+        self.assertEqual(str(e.exception), "Only one of 'foo' or 'bar' can be set.")
 
 
 class MetadataComponentTestCase(unittest.TestCase):
@@ -13,7 +58,7 @@ class MetadataComponentTestCase(unittest.TestCase):
     def test_missing_required_field(self):
         data = {}
         component = components.MetadataComponent()
-        with self.assertRaises(components.ValidationError):
+        with self.assertRaises(exceptions.ValidationError):
             component.serialize(data)
 
 
