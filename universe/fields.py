@@ -30,7 +30,13 @@ class IntField(Field):
 
 
 class ListField(Field):
-    pass
+    def validate(self, data):
+        super().validate(data)
+        if self.name not in data:
+            return
+        value = data[self.name]
+        if not isinstance(value, list):
+            raise exceptions.ValidationError(f"{self.name!r} must be a list.")
 
 
 class CharField(Field):
