@@ -102,3 +102,39 @@ class ListFieldTestCase(unittest.TestCase):
         field.name = 'queue'
 
         self.assertIsNone(field.validate({'queue': []}))
+
+
+class CharFieldTestCase(unittest.TestCase):
+    def test_not_required(self):
+        field = fields.CharField(required=False)
+        field.name = 'name'
+
+        self.assertIsNone(field.validate({}))
+
+    def test_explicit_required(self):
+        field = fields.CharField(required=True)
+        field.name = 'name'
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            field.validate({})
+        self.assertEqual(str(e.exception), "'name' is required.")
+
+    def test_bad_type(self):
+        field = fields.CharField(required=True)
+        field.name = 'name'
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            field.validate({'name': 0})
+        self.assertEqual(str(e.exception), "'name' must be a string.")
+
+    def test_empty_string_is_valid(self):
+        field = fields.CharField(required=True)
+        field.name = 'name'
+
+        self.assertIsNone(field.validate({'name': ""}))
+
+    def test_valid_string(self):
+        field = fields.CharField(required=True)
+        field.name = 'name'
+
+        self.assertIsNone(field.validate({'name': "Human"}))
