@@ -12,6 +12,7 @@ class MetaComponent(type):
         for name, f in attrs.items():
             if isinstance(f, fields.Field):
                 new_attrs['_fields'][name] = f
+                f.name = name
             else:
                 new_attrs[name] = f
 
@@ -20,17 +21,23 @@ class MetaComponent(type):
 
 
 class Component(metaclass=MetaComponent):
+    def validate(self, data):
+        for name, field in self._fields.items():
+            field.validate(data)
+            if hasattr(self, f'validate_{name}'):
+                getattr(self, f'validate_{name}')(data)
+
     def serialize(self, data):
         output = {}
+        self.validate(data)
         for name, field in self._fields.items():
             if name in data:
                 output[name] = data[name]
-            elif getattr(field, 'required', True):
-                raise exceptions.ValidationError(f"{name} is required.")
         return output
 
     def display(self, data):
         output = {}
+        self.validate(data)
         for name, field in self._fields.items():
             if name in data:
                 value = data[name]
@@ -39,8 +46,6 @@ class Component(metaclass=MetaComponent):
                 else:
                     value = str(value)
                 output[name] = value
-            elif getattr(field, 'required', True):
-                raise exceptions.ValidationError(f"{name} is required.")
         return output
 
 

@@ -1,8 +1,13 @@
+from . import exceptions
 
 
 class Field:
     def __init__(self, required=True):
         self.required = required
+
+    def validate(self, data):
+        if self.required and self.name not in data:
+            raise exceptions.ValidationError(f"{self.name} is required.")
 
 
 class IntField(Field):
