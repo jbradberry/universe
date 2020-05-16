@@ -67,3 +67,38 @@ class PopulationTestCase(unittest.TestCase):
                 }
             }
         )
+
+    def test_lose_ownership(self):
+        state = {
+            'turn': 2500,
+            'width': 1000,
+            'entities': {
+                0: {
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                },
+                1: {
+                    'type': 'planet',
+                    'population': 0,
+                    'x': 480,
+                    'y': 235,
+                    'gravity': 50,
+                    'temperature': 50,
+                    'radiation': 50,
+                    'ironium_conc': 50,
+                    'boranium_conc': 50,
+                    'germanium_conc': 50,
+                    'owner_id': 0,
+                    'queue': [],
+                },
+            }
+        }
+
+        S = engine.GameState(state, {})
+        results = S.generate()
+
+        self.assertEqual(len(results['entities']), 2)
+        self.assertNotIn('population', results['entities'][1])
+        self.assertNotIn('owner_id', results['entities'][1])
