@@ -24,12 +24,14 @@ class Entity:
         for component in self.__dict__.get('_components', {}).values():
             if name in component._fields:
                 self.__dict__['_data'][name] = value
+                return
         self.__dict__[name] = value
 
     def __delattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
             if name in component._fields:
                 del self.__dict__['_data'][name]
+                return
         del self.__dict__[name]
 
     def __contains__(self, key):

@@ -119,3 +119,6 @@ class PopulationGrowthSystem:
             growth_rate = 1 + Decimal(species.growth_rate) / 100
             population *= growth_rate
             entity.population = int(population.to_integral_value())
+            if entity.population <= 0:
+                del entity.population
+                del entity.owner_id
