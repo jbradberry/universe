@@ -111,3 +111,88 @@ class MineralConcentrationComponentTestCase(unittest.TestCase):
 
         # no ValidationError is raised
         self.assertTrue(components.MineralConcentrationComponent().serialize(data))
+
+
+class SpeciesComponentTestCase(unittest.TestCase):
+    def test_immune(self):
+        data = {
+            'type': 'species',
+            'name': 'Human',
+            'plural_name': 'Humans',
+            'growth_rate': 15,
+            'gravity_immune': True,
+            'temperature_immune': True,
+            'radiation_immune': True,
+        }
+        component = components.SpeciesComponent()
+
+        self.assertIsNone(component.validate(data))
+
+    def test_immune_with_value(self):
+        component = components.SpeciesComponent()
+
+        for fname in ('gravity', 'temperature', 'radiation'):
+            data = {
+                'type': 'species',
+                'name': 'Human',
+                'plural_name': 'Humans',
+                'growth_rate': 15,
+                'gravity_immune': True,
+                'temperature_immune': True,
+                'radiation_immune': True,
+            }
+            data[f'{fname}_min'] = 30
+            data[f'{fname}_max'] = 70
+
+            with self.assertRaises(exceptions.ValidationError) as e:
+                component.validate(data)
+
+            self.assertEqual(
+                str(e.exception),
+                f"'{fname}_min' and '{fname}_max' may not be set if '{fname}_immune' is true."
+            )
+
+    def test_not_immune(self):
+        data = {
+            'type': 'species',
+            'name': 'Human',
+            'plural_name': 'Humans',
+            'growth_rate': 15,
+            'gravity_immune': False,
+            'temperature_immune': False,
+            'radiation_immune': False,
+        }
+        component = components.SpeciesComponent()
+
+        with self.assertRaises(exceptions.ValidationError):
+            component.validate(data)
+
+    def test_not_immune_without_value(self):
+        component = components.SpeciesComponent()
+
+        for fname in ('gravity', 'temperature', 'radiation'):
+            data = {
+                'type': 'species',
+                'name': 'Human',
+                'plural_name': 'Humans',
+                'growth_rate': 15,
+                'gravity_min': 30,
+                'gravity_max': 70,
+                'gravity_immune': False,
+                'temperature_min': 30,
+                'temperature_max': 70,
+                'temperature_immune': False,
+                'radiation_min': 30,
+                'radiation_max': 70,
+                'radiation_immune': False,
+            }
+            data.pop(f'{fname}_min')
+            data.pop(f'{fname}_max')
+
+            with self.assertRaises(exceptions.ValidationError) as e:
+                component.validate(data)
+
+            self.assertEqual(
+                str(e.exception),
+                f"'{fname}_min' and '{fname}_max' must be set if '{fname}_immune' is false."
+            )

@@ -28,6 +28,31 @@ class FieldTestCase(unittest.TestCase):
         self.assertEqual(str(e.exception), "'foo' is required.")
 
 
+class BooleanFieldTestCase(unittest.TestCase):
+    def test_implicit(self):
+        field = fields.BooleanField()
+        field.name = 'checkmark'
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            field.validate({})
+        self.assertEqual(str(e.exception), "'checkmark' is required.")
+
+    def test_bad_type(self):
+        field = fields.BooleanField()
+        field.name = 'checkmark'
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            field.validate({'checkmark': 'a'})
+        self.assertEqual(str(e.exception), "'checkmark' must be a boolean.")
+
+    def test_ok(self):
+        field = fields.BooleanField()
+        field.name = 'checkmark'
+
+        self.assertIsNone(field.validate({'checkmark': True}))
+        self.assertIsNone(field.validate({'checkmark': False}))
+
+
 class IntFieldTestCase(unittest.TestCase):
     def test_not_required(self):
         field = fields.IntField(required=False)

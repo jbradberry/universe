@@ -14,6 +14,9 @@ class PersistenceTestCase(unittest.TestCase):
                     'name': 'Human',
                     'plural_name': 'Humans',
                     'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
                 },
                 1: {
                     'type': 'planet',
@@ -66,6 +69,9 @@ class PersistenceTestCase(unittest.TestCase):
                     'name': 'Human',
                     'plural_name': 'Humans',
                     'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
                 },
                 1: {
                     'type': 'ship',
@@ -106,6 +112,9 @@ class PersistenceTestCase(unittest.TestCase):
                     'name': 'Human',
                     'plural_name': 'Humans',
                     'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
                 },
             }
         }
@@ -119,6 +128,9 @@ class PersistenceTestCase(unittest.TestCase):
         self.assertEqual(results['entities'][0]['name'], 'Human')
         self.assertEqual(results['entities'][0]['plural_name'], 'Humans')
         self.assertEqual(results['entities'][0]['growth_rate'], 15)
+        self.assertEqual(results['entities'][0]['gravity_immune'], True)
+        self.assertEqual(results['entities'][0]['temperature_immune'], True)
+        self.assertEqual(results['entities'][0]['radiation_immune'], True)
 
 
 class MovementTestCase(unittest.TestCase):

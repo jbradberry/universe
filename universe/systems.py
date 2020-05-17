@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from . import utils
+
 
 class UpdateSystem:
     def process(self, manager):
@@ -110,14 +112,33 @@ class MovementSystem:
 class PopulationGrowthSystem:
     def process(self, manager):
         for _id, entity in manager.get_entities('population').items():
-            population = entity.population or 0
             if entity.type == 'ship':
                 continue
             species = manager.get_entity('species', entity.owner_id)
             if species is None:
                 continue
-            growth_rate = 1 + Decimal(species.growth_rate) / 100
-            population *= growth_rate
+
+            population = entity.population or 0
+            growth_rate = Decimal(species.growth_rate) / 100
+            habitability = Decimal(utils.planet_value(species, entity)) / 100
+            capacity = 1_000_000 * habitability
+
+            crowding, ratio = 1, 1
+            if habitability >= 0:
+                ratio = population / capacity
+                if ratio > 4:
+                    growth_rate = Decimal('-0.12')
+                elif ratio > 1:
+                    growth_rate = Decimal('-0.04') * (ratio - 1)
+                elif ratio > 0.25:
+                    crowding = 16 * (1 - ratio) ** 2 / 9
+            else:
+                # For red planets, you always lose 1/10 of the negative hab rating,
+                # e.g. -45% is -4.5% per year.  See:
+                # https://starsautohost.org/sahforum2/index.php?t=msg&th=5565&rid=0#msg_62828
+                growth_rate = Decimal('0.10')
+
+            population *= 1 + growth_rate * habitability * crowding
             entity.population = int(population.to_integral_value())
             if entity.population <= 0:
                 del entity.population
