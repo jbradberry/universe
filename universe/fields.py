@@ -68,3 +68,7 @@ class Reference(Field):
         value = data[self.name]
         if not isinstance(value, int):
             raise exceptions.ValidationError(f"{self.name!r} must be an integer.")
+
+        from .engine import Entity
+        if Entity.manager.get_entity('metadata', value) is None:
+            raise exceptions.ValidationError(f"{self.name!r} is not an existing entity.")

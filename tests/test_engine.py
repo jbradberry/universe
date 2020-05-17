@@ -1,6 +1,39 @@
 import unittest
 
-from universe import engine
+from universe import engine, exceptions
+
+
+class EntityTestCase(unittest.TestCase):
+    def test_invalid_ownership(self):
+        state = {
+            'turn': 2500,
+            'width': 1000,
+            'entities': {
+                1: {
+                    'type': 'planet',
+                    'x': 300,
+                    'y': 600,
+                    'gravity': 27,
+                    'temperature': 36,
+                    'radiation': 45,
+                    'ironium_conc': 67,
+                    'boranium_conc': 78,
+                    'germanium_conc': 82,
+                    'ironium': 20,
+                    'boranium': 30,
+                    'germanium': 40,
+                    'queue': [],
+                    'owner_id': 0,  # Not an entity in the pool.
+                    'population': 1000,
+                }
+            }
+        }
+
+        S = engine.GameState(state, {})
+        with self.assertRaises(exceptions.ValidationError) as e:
+            results = S.generate()
+
+        self.assertEqual(str(e.exception), "'owner_id' is not an existing entity.")
 
 
 class PersistenceTestCase(unittest.TestCase):
