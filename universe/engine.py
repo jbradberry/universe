@@ -1,12 +1,14 @@
+import weakref
+
 from . import components, systems
 from .orders import (Move, CargoTransfer, Scrap, BuildInstallation, Terraform,
                      BuildStation, BuildShip, LaunchMassPacket)
 
 
 class Entity:
-    def __init__(self, registry, data):
+    def __init__(self, data):
         self._data = data
-        self._components = registry[data['type']]
+        self._components = Entity.manager._entity_registry[data['type']]
 
         for _type, component in self._components.items():
             component.validate(data)
@@ -43,6 +45,10 @@ class Entity:
             data.update(component.serialize(self._data))
         return data
 
+    @classmethod
+    def register_manager(cls, manager):
+        cls.manager = weakref.proxy(manager)
+
 
 class Manager:
     def __init__(self):
@@ -74,7 +80,7 @@ class Manager:
         self._components.setdefault(_type, {})[_id] = entity
 
     def register_entity(self, _id, entity):
-        entity_obj = Entity(self._entity_registry, entity)
+        entity_obj = Entity(entity)
         for component in entity_obj._components:
             self._components.setdefault(component, {})[_id] = entity_obj
 
@@ -125,6 +131,7 @@ class GameState:
         self.manager.register_entity_type('species', [
             components.SpeciesComponent(),
         ])
+        Entity.register_manager(self.manager)
 
         self.new = {}
 

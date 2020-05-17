@@ -5,7 +5,8 @@ from universe import components, engine, utils
 
 class PlanetValueTestCase(unittest.TestCase):
     def test_values(self):
-        registry = {
+        manager = engine.Manager()
+        manager._entity_registry = {
             'species': {
                 'metadata': components.MetadataComponent(),
                 'species': components.SpeciesComponent(),
@@ -15,8 +16,9 @@ class PlanetValueTestCase(unittest.TestCase):
                 'environment': components.EnvironmentComponent(),
             },
         }
+        engine.Entity.register_manager(manager)
+
         species = engine.Entity(
-            registry,
             {'type': 'species',
              'name': 'Human',
              'plural_name': 'Humans',
@@ -956,7 +958,6 @@ class PlanetValueTestCase(unittest.TestCase):
 
         for g, t, r, value in data:
             planet = engine.Entity(
-                registry,
                 {'type': 'planet',
                  'gravity': g,
                  'temperature': t,
