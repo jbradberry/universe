@@ -58,3 +58,13 @@ class CharField(Field):
         value = data[self.name]
         if not isinstance(value, str):
             raise exceptions.ValidationError(f"{self.name!r} must be a string.")
+
+
+class Reference(Field):
+    def validate(self, data):
+        super().validate(data)
+        if self.name not in data:
+            return
+        value = data[self.name]
+        if not isinstance(value, int):
+            raise exceptions.ValidationError(f"{self.name!r} must be an integer.")
