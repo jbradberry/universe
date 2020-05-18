@@ -7,7 +7,7 @@ from .orders import (Move, CargoTransfer, Scrap, BuildInstallation, Terraform,
 
 class Entity:
     def __init__(self, data):
-        self._data = data
+        self.__dict__.update(data)
         self._components = Entity.manager._entity_registry[data['type']]
 
         for _type, component in self._components.items():
@@ -16,7 +16,7 @@ class Entity:
     def __getattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
             if name in component._fields:
-                return self.__dict__['_data'].get(name)
+                return self.__dict__.get(name)
         try:
             return self.__dict__[name]
         except KeyError:
@@ -25,14 +25,14 @@ class Entity:
     def __setattr__(self, name, value):
         for component in self.__dict__.get('_components', {}).values():
             if name in component._fields:
-                self.__dict__['_data'][name] = value
+                self.__dict__[name] = value
                 return
         self.__dict__[name] = value
 
     def __delattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
             if name in component._fields:
-                del self.__dict__['_data'][name]
+                del self.__dict__[name]
                 return
         del self.__dict__[name]
 
@@ -40,9 +40,9 @@ class Entity:
         return key in self._components
 
     def serialize(self):
-        data = {'type': self._data['type']}
+        data = {}
         for _type, component in self._components.items():
-            data.update(component.serialize(self._data))
+            data.update(component.serialize(self.__dict__))
         return data
 
     @classmethod
