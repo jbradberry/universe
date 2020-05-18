@@ -5,6 +5,11 @@ class Field:
     def __init__(self, required=True):
         self.required = required
 
+    def serialize(self, data):
+        if self.name in data:
+            return {self.name: data[self.name]}
+        return {}
+
     def validate(self, data):
         if self.required and self.name not in data:
             raise exceptions.ValidationError(f"{self.name!r} is required.")

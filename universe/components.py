@@ -30,9 +30,8 @@ class Component(metaclass=MetaComponent):
     def serialize(self, data):
         output = {}
         self.validate(data)
-        for name, field in self._fields.items():
-            if name in data:
-                output[name] = data[name]
+        for field in self._fields.values():
+            output.update(field.serialize(data))
         return output
 
     def display(self, data):
