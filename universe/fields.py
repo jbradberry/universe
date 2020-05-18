@@ -66,14 +66,21 @@ class CharField(Field):
 
 
 class Reference(Field):
+    def serialize(self, data):
+        name = f'{self.name}_id'
+        if name in data:
+            return {name: data[name]}
+        return {}
+
     def validate(self, data):
         super().validate(data)
-        if self.name not in data:
+        name = f'{self.name}_id'
+        if name not in data:
             return
-        value = data[self.name]
+        value = data[name]
         if not isinstance(value, int):
-            raise exceptions.ValidationError(f"{self.name!r} must be an integer.")
+            raise exceptions.ValidationError(f"{name!r} must be an integer.")
 
         from .engine import Entity
         if Entity.manager.get_entity('metadata', value) is None:
-            raise exceptions.ValidationError(f"{self.name!r} is not an existing entity.")
+            raise exceptions.ValidationError(f"{name!r} is not an existing entity.")

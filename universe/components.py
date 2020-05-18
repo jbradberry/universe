@@ -126,7 +126,7 @@ class SpeciesComponent(Component):
 class OwnershipComponent(Component):
     _name = 'ownership'
 
-    owner_id = fields.Reference(required=False)
+    owner = fields.Reference(required=False)
 
 
 class PopulationComponent(Component):
