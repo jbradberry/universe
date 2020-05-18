@@ -12,6 +12,9 @@ class Field:
     def from_data(self, data):
         return data.get(self.data_name)
 
+    def to_data(self, value):
+        return value
+
     def serialize(self, data):
         if self.data_name in data:
             return {self.data_name: data[self.data_name]}
@@ -84,6 +87,14 @@ class Reference(Field):
 
         from .engine import Entity
         return Entity.manager.get_entity('metadata', value)
+
+    def to_data(self, value):
+        from .engine import Entity
+        if isinstance(value, Entity):
+            return value.pk
+        if value is None:
+            raise exceptions.empty
+        return value
 
     def validate(self, data):
         super().validate(data)

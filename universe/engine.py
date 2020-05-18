@@ -1,6 +1,6 @@
 import weakref
 
-from . import components, systems
+from . import components, systems, exceptions
 from .orders import (Move, CargoTransfer, Scrap, BuildInstallation, Terraform,
                      BuildStation, BuildShip, LaunchMassPacket)
 
@@ -12,8 +12,11 @@ class Entity:
 
     def __getattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
-            if name in component._fields:
-                return component._fields[name].from_data(self.__dict__)
+            for field in component._fields.values():
+                if name == field.data_name:
+                    return self.__dict__.get(name)
+                if name == field.name:
+                    return field.from_data(self.__dict__)
         try:
             return self.__dict__[name]
         except KeyError:
@@ -21,16 +24,21 @@ class Entity:
 
     def __setattr__(self, name, value):
         for component in self.__dict__.get('_components', {}).values():
-            if name in component._fields:
-                self.__dict__[name] = value
-                return
+            for field in component._fields.values():
+                if name in (field.data_name, field.name):
+                    try:
+                        self.__dict__[field.data_name] = field.to_data(value)
+                    except exceptions.empty:
+                        self.__dict__.pop(field.data_name, None)
+                    return
         self.__dict__[name] = value
 
     def __delattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
-            if name in component._fields:
-                del self.__dict__[name]
-                return
+            for field in component._fields.values():
+                if name in (field.data_name, field.name):
+                    self.__dict__.pop(field.data_name)
+                    return
         del self.__dict__[name]
 
     def __contains__(self, key):
@@ -82,6 +90,7 @@ class Manager:
 
     def register_entity(self, _id, entity):
         entity_obj = Entity(**entity)
+        entity_obj.pk = _id
         for component in entity_obj._components:
             self.set_entity(component, _id, entity_obj)
 

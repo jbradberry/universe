@@ -226,3 +226,28 @@ class OwnershipComponentTestCase(unittest.TestCase):
 
         self.assertIsInstance(planet.owner, engine.Entity)
         self.assertEqual(planet.owner.serialize(), {'type': 'species'})
+
+    def test_set_reference(self):
+        self.manager.register_entity(0, {'type': 'species'})
+        self.manager.register_entity(1, {'type': 'species'})
+        self.manager.register_entity(2, {'type': 'planet'})
+
+        planet = self.manager.get_entity('metadata', 2)
+        self.assertIsNone(planet.owner)
+        self.assertIsNone(planet.owner_id)
+
+        planet.owner = 0
+        self.assertIsInstance(planet.owner, engine.Entity)
+        self.assertIsInstance(planet.owner_id, int)
+        self.assertEqual(planet.owner.pk, 0)
+        self.assertEqual(planet.owner_id, 0)
+
+        planet.owner = self.manager.get_entity('metadata', 1)
+        self.assertIsInstance(planet.owner, engine.Entity)
+        self.assertIsInstance(planet.owner_id, int)
+        self.assertEqual(planet.owner.pk, 1)
+        self.assertEqual(planet.owner_id, 1)
+
+        planet.owner = None
+        self.assertIsNone(planet.owner)
+        self.assertIsNone(planet.owner_id)
