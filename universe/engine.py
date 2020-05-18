@@ -10,9 +10,6 @@ class Entity:
         self.__dict__.update(data)
         self._components = Entity.manager._entity_registry[data['type']]
 
-        for _type, component in self._components.items():
-            component.validate(data)
-
     def __getattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
             if name in component._fields:
@@ -38,6 +35,10 @@ class Entity:
 
     def __contains__(self, key):
         return key in self._components
+
+    def validate(self):
+        for component in self._components.values():
+            component.validate(self.__dict__)
 
     def serialize(self):
         data = {}
@@ -82,7 +83,7 @@ class Manager:
     def register_entity(self, _id, entity):
         entity_obj = Entity(entity)
         for component in entity_obj._components:
-            self._components.setdefault(component, {})[_id] = entity_obj
+            self.set_entity(component, _id, entity_obj)
 
     def process(self):
         for system_cls in self._systems:
@@ -92,10 +93,12 @@ class Manager:
     def import_data(self, data, updates):
         for _id, entity in (data.get('entities') or {}).items():
             self.register_entity(_id, entity)
+        for entity in self.get_entities('metadata').values():
+            entity.validate()
         self._updates = updates
 
     def export_data(self):
-        data = {_id: entity for _id, entity in self._components.get('metadata', {}).items()}
+        data = {_id: entity for _id, entity in self.get_entities('metadata').items()}
 
         return {'entities': {_id: entity.serialize() for _id, entity in data.items()}}
 
