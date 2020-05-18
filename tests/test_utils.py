@@ -18,7 +18,7 @@ class PlanetValueTestCase(unittest.TestCase):
         }
         engine.Entity.register_manager(manager)
 
-        species = engine.Entity(
+        species = engine.Entity(**
             {'type': 'species',
              'name': 'Human',
              'plural_name': 'Humans',
@@ -957,7 +957,7 @@ class PlanetValueTestCase(unittest.TestCase):
         ]
 
         for g, t, r, value in data:
-            planet = engine.Entity(
+            planet = engine.Entity(**
                 {'type': 'planet',
                  'gravity': g,
                  'temperature': t,

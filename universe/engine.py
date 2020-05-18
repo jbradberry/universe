@@ -6,9 +6,9 @@ from .orders import (Move, CargoTransfer, Scrap, BuildInstallation, Terraform,
 
 
 class Entity:
-    def __init__(self, data):
-        self.__dict__.update(data)
-        self._components = Entity.manager._entity_registry[data['type']]
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+        self._components = Entity.manager._entity_registry[kwargs['type']]
 
     def __getattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
@@ -81,7 +81,7 @@ class Manager:
         self._components.setdefault(_type, {})[_id] = entity
 
     def register_entity(self, _id, entity):
-        entity_obj = Entity(entity)
+        entity_obj = Entity(**entity)
         for component in entity_obj._components:
             self.set_entity(component, _id, entity_obj)
 
