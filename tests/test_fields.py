@@ -163,3 +163,27 @@ class CharFieldTestCase(unittest.TestCase):
         field.name = 'name'
 
         self.assertIsNone(field.validate({'name': "Human"}))
+
+
+class ReferenceTestCase(unittest.TestCase):
+    def test_not_required(self):
+        field = fields.Reference(required=False)
+        field.name = 'owner'
+
+        self.assertIsNone(field.validate({}))
+
+    def test_explicit_required(self):
+        field = fields.Reference(required=True)
+        field.name = 'owner'
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            field.validate({})
+        self.assertEqual(str(e.exception), "'owner_id' is required.")
+
+    def test_bad_type(self):
+        field = fields.Reference(required=True)
+        field.name = 'owner'
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            field.validate({'owner_id': 'a'})
+        self.assertEqual(str(e.exception), "'owner_id' must be an integer.")

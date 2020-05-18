@@ -13,7 +13,7 @@ class Entity:
     def __getattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
             if name in component._fields:
-                return self.__dict__.get(name)
+                return component._fields[name].from_data(self.__dict__)
         try:
             return self.__dict__[name]
         except KeyError:

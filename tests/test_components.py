@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-from universe import components, fields, exceptions
+from universe import components, fields, engine, exceptions
 
 
 class ComponentTestCase(unittest.TestCase):
@@ -196,3 +196,33 @@ class SpeciesComponentTestCase(unittest.TestCase):
                 str(e.exception),
                 f"'{fname}_min' and '{fname}_max' must be set if '{fname}_immune' is false."
             )
+
+
+class OwnershipComponentTestCase(unittest.TestCase):
+    def setUp(self):
+        self.manager = engine.Manager()
+        self.manager._entity_registry = {
+            'species': {
+                'metadata': components.MetadataComponent(),
+            },
+            'planet': {
+                'metadata': components.MetadataComponent(),
+                'ownership': components.OwnershipComponent(),
+            },
+        }
+        engine.Entity.register_manager(self.manager)
+
+    def test_null_pointer(self):
+        self.manager.register_entity(0, {'type': 'planet'})
+
+        planet = self.manager.get_entity('metadata', 0)
+        self.assertIsNone(planet.owner)
+
+    def test_entity_reference(self):
+        self.manager.register_entity(0, {'type': 'species'})
+        self.manager.register_entity(1, {'type': 'planet', 'owner_id': 0})
+
+        planet = self.manager.get_entity('metadata', 1)
+
+        self.assertIsInstance(planet.owner, engine.Entity)
+        self.assertEqual(planet.owner.serialize(), {'type': 'species'})
