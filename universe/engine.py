@@ -90,12 +90,13 @@ class Manager:
         self._components.setdefault(_type, {})[entity.pk] = entity
 
     def register_entity(self, entity):
-        entity_obj = Entity(**entity)
-        if entity_obj.pk is None:
-            entity_obj.pk = self._seq
+        if not isinstance(entity, Entity):
+            entity = Entity(**entity)
+        if entity.pk is None:
+            entity.pk = self._seq
             self._seq += 1
-        for component in entity_obj._components:
-            self.set_entity(component, entity_obj)
+        for component in entity._components:
+            self.set_entity(component, entity)
 
     def process(self):
         for system_cls in self._systems:
