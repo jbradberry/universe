@@ -9,8 +9,9 @@ class PopulationTestCase(unittest.TestCase):
         state = {
             'turn': 2500,
             'width': 1000,
-            'entities': {
-                0: {
+            'entities': [
+                {
+                    'pk': 0,
                     'type': 'species',
                     'name': 'Human',
                     'plural_name': 'Humans',
@@ -19,7 +20,8 @@ class PopulationTestCase(unittest.TestCase):
                     'temperature_immune': True,
                     'radiation_immune': True,
                 },
-                1: {
+                {
+                    'pk': 1,
                     'type': 'planet',
                     'population': 1000,
                     'x': 480,
@@ -33,7 +35,7 @@ class PopulationTestCase(unittest.TestCase):
                     'owner_id': 0,
                     'queue': [],
                 },
-            }
+            ]
         }
 
         S = engine.GameState(state, {})
@@ -47,8 +49,9 @@ class PopulationTestCase(unittest.TestCase):
         state = {
             'turn': 2500,
             'width': 1000,
-            'entities': {
-                0: {
+            'entities': [
+                {
+                    'pk': 0,
                     'type': 'species',
                     'name': 'Human',
                     'plural_name': 'Humans',
@@ -57,7 +60,8 @@ class PopulationTestCase(unittest.TestCase):
                     'temperature_immune': True,
                     'radiation_immune': True,
                 },
-                1: {
+                {
+                    'pk': 1,
                     'type': 'planet',
                     'population': 500_000,
                     'x': 480,
@@ -71,7 +75,7 @@ class PopulationTestCase(unittest.TestCase):
                     'owner_id': 0,
                     'queue': [],
                 },
-            }
+            ]
         }
 
         S = engine.GameState(state, {})
@@ -88,8 +92,9 @@ class PopulationTestCase(unittest.TestCase):
         state = {
             'turn': 2500,
             'width': 1000,
-            'entities': {
-                0: {
+            'entities': [
+                {
+                    'pk': 0,
                     'type': 'species',
                     'name': 'Human',
                     'plural_name': 'Humans',
@@ -104,7 +109,8 @@ class PopulationTestCase(unittest.TestCase):
                     'radiation_min': 38,
                     'radiation_max': 90,
                 },
-                1: {
+                {
+                    'pk': 1,
                     'type': 'planet',
                     'population': 1_000_000,
                     'x': 480,
@@ -118,7 +124,7 @@ class PopulationTestCase(unittest.TestCase):
                     'owner_id': 0,
                     'queue': [],
                 },
-            }
+            ]
         }
 
         S = engine.GameState(state, {})
@@ -132,8 +138,9 @@ class PopulationTestCase(unittest.TestCase):
         state = {
             'turn': 2500,
             'width': 1000,
-            'entities': {
-                0: {
+            'entities': [
+                {
+                    'pk': 0,
                     'type': 'species',
                     'name': 'Human',
                     'plural_name': 'Humans',
@@ -148,7 +155,8 @@ class PopulationTestCase(unittest.TestCase):
                     'radiation_min': 38,
                     'radiation_max': 90,
                 },
-                1: {
+                {
+                    'pk': 1,
                     'type': 'planet',
                     'population': 2_000_000,
                     'x': 480,
@@ -162,7 +170,7 @@ class PopulationTestCase(unittest.TestCase):
                     'owner_id': 0,
                     'queue': [],
                 },
-            }
+            ]
         }
 
         S = engine.GameState(state, {})
@@ -178,8 +186,9 @@ class PopulationTestCase(unittest.TestCase):
         state = {
             'turn': 2500,
             'width': 1000,
-            'entities': {
-                0: {
+            'entities': [
+                {
+                    'pk': 0,
                     'type': 'species',
                     'name': 'Human',
                     'plural_name': 'Humans',
@@ -194,7 +203,8 @@ class PopulationTestCase(unittest.TestCase):
                     'radiation_min': 38,
                     'radiation_max': 90,
                 },
-                1: {
+                {
+                    'pk': 1,
                     'type': 'planet',
                     'population': 100_000,
                     'x': 480,
@@ -208,7 +218,7 @@ class PopulationTestCase(unittest.TestCase):
                     'owner_id': 0,
                     'queue': [],
                 },
-            }
+            ]
         }
 
         S = engine.GameState(state, {})
@@ -224,8 +234,9 @@ class PopulationTestCase(unittest.TestCase):
         state = {
             'turn': 2500,
             'width': 1000,
-            'entities': {
-                0: {
+            'entities': [
+                {
+                    'pk': 0,
                     'type': 'species',
                     'name': 'Human',
                     'plural_name': 'Humans',
@@ -234,7 +245,8 @@ class PopulationTestCase(unittest.TestCase):
                     'temperature_immune': True,
                     'radiation_immune': True,
                 },
-                1: {
+                {
+                    'pk': 1,
                     'type': 'planet',
                     'population': 0,
                     'x': 480,
@@ -248,7 +260,7 @@ class PopulationTestCase(unittest.TestCase):
                     'owner_id': 0,
                     'queue': [],
                 },
-            }
+            ]
         }
 
         S = engine.GameState(state, {})

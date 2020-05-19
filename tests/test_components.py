@@ -222,14 +222,14 @@ class OwnershipComponentTestCase(unittest.TestCase):
         engine.Entity.register_manager(self.manager)
 
     def test_null_pointer(self):
-        self.manager.register_entity(0, {'type': 'planet'})
+        self.manager.register_entity({'pk': 0, 'type': 'planet'})
 
         planet = self.manager.get_entity('metadata', 0)
         self.assertIsNone(planet.owner)
 
     def test_entity_reference(self):
-        self.manager.register_entity(0, {'pk': 0, 'type': 'species'})
-        self.manager.register_entity(1, {'pk': 1, 'type': 'planet', 'owner_id': 0})
+        self.manager.register_entity({'pk': 0, 'type': 'species'})
+        self.manager.register_entity({'pk': 1, 'type': 'planet', 'owner_id': 0})
 
         planet = self.manager.get_entity('metadata', 1)
 
@@ -237,9 +237,9 @@ class OwnershipComponentTestCase(unittest.TestCase):
         self.assertEqual(planet.owner.serialize(), {'pk': 0, 'type': 'species'})
 
     def test_set_reference(self):
-        self.manager.register_entity(0, {'type': 'species'})
-        self.manager.register_entity(1, {'type': 'species'})
-        self.manager.register_entity(2, {'type': 'planet'})
+        self.manager.register_entity({'pk': 0, 'type': 'species'})
+        self.manager.register_entity({'pk': 1, 'type': 'species'})
+        self.manager.register_entity({'pk': 2, 'type': 'planet'})
 
         planet = self.manager.get_entity('metadata', 2)
         self.assertIsNone(planet.owner)
@@ -262,8 +262,8 @@ class OwnershipComponentTestCase(unittest.TestCase):
         self.assertIsNone(planet.owner_id)
 
     def test_wrong_owner_type(self):
-        self.manager.register_entity(0, {'type': 'planet'})
-        self.manager.register_entity(1, {'type': 'planet'})
+        self.manager.register_entity({'pk': 0, 'type': 'planet'})
+        self.manager.register_entity({'pk': 1, 'type': 'planet'})
 
         planet0 = self.manager.get_entity('metadata', 0)
         planet1 = self.manager.get_entity('metadata', 1)
