@@ -1,20 +1,22 @@
-from . import components, systems
+import weakref
+
+from . import components, systems, exceptions
 from .orders import (Move, CargoTransfer, Scrap, BuildInstallation, Terraform,
                      BuildStation, BuildShip, LaunchMassPacket)
 
 
 class Entity:
-    def __init__(self, registry, data):
-        self._data = data
-        self._components = registry[data['type']]
-
-        for _type, component in self._components.items():
-            component.validate(data)
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+        self._components = Entity.manager._entity_registry[kwargs['type']]
 
     def __getattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
-            if name in component._fields:
-                return self.__dict__['_data'].get(name)
+            for field in component._fields.values():
+                if name == field.data_name:
+                    return self.__dict__.get(name)
+                if name == field.name:
+                    return field.from_data(self.__dict__)
         try:
             return self.__dict__[name]
         except KeyError:
@@ -22,26 +24,39 @@ class Entity:
 
     def __setattr__(self, name, value):
         for component in self.__dict__.get('_components', {}).values():
-            if name in component._fields:
-                self.__dict__['_data'][name] = value
-                return
+            for field in component._fields.values():
+                if name in (field.data_name, field.name):
+                    try:
+                        self.__dict__[field.data_name] = field.to_data(value)
+                    except exceptions.empty:
+                        self.__dict__.pop(field.data_name, None)
+                    return
         self.__dict__[name] = value
 
     def __delattr__(self, name):
         for component in self.__dict__.get('_components', {}).values():
-            if name in component._fields:
-                del self.__dict__['_data'][name]
-                return
+            for field in component._fields.values():
+                if name in (field.data_name, field.name):
+                    self.__dict__.pop(field.data_name)
+                    return
         del self.__dict__[name]
 
     def __contains__(self, key):
         return key in self._components
 
+    def validate(self):
+        for component in self._components.values():
+            component.validate(self.__dict__)
+
     def serialize(self):
-        data = {'type': self._data['type']}
+        data = {}
         for _type, component in self._components.items():
-            data.update(component.serialize(self._data))
+            data.update(component.serialize(self.__dict__))
         return data
+
+    @classmethod
+    def register_manager(cls, manager):
+        cls.manager = weakref.proxy(manager)
 
 
 class Manager:
@@ -74,9 +89,10 @@ class Manager:
         self._components.setdefault(_type, {})[_id] = entity
 
     def register_entity(self, _id, entity):
-        entity_obj = Entity(self._entity_registry, entity)
+        entity_obj = Entity(**entity)
+        entity_obj.pk = _id
         for component in entity_obj._components:
-            self._components.setdefault(component, {})[_id] = entity_obj
+            self.set_entity(component, _id, entity_obj)
 
     def process(self):
         for system_cls in self._systems:
@@ -86,10 +102,12 @@ class Manager:
     def import_data(self, data, updates):
         for _id, entity in (data.get('entities') or {}).items():
             self.register_entity(_id, entity)
+        for entity in self.get_entities('metadata').values():
+            entity.validate()
         self._updates = updates
 
     def export_data(self):
-        data = {_id: entity for _id, entity in self._components.get('metadata', {}).items()}
+        data = {_id: entity for _id, entity in self.get_entities('metadata').items()}
 
         return {'entities': {_id: entity.serialize() for _id, entity in data.items()}}
 
@@ -125,6 +143,7 @@ class GameState:
         self.manager.register_entity_type('species', [
             components.SpeciesComponent(),
         ])
+        Entity.register_manager(self.manager)
 
         self.new = {}
 

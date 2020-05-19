@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import unittest
 
-from universe import components, fields, exceptions
+from universe import components, fields, engine, exceptions
 
 
 class ComponentTestCase(unittest.TestCase):
@@ -196,3 +196,74 @@ class SpeciesComponentTestCase(unittest.TestCase):
                 str(e.exception),
                 f"'{fname}_min' and '{fname}_max' must be set if '{fname}_immune' is false."
             )
+
+
+class OwnershipComponentTestCase(unittest.TestCase):
+    def setUp(self):
+        self.manager = engine.Manager()
+        self.manager._entity_registry = {
+            'species': {
+                'metadata': components.MetadataComponent(),
+            },
+            'planet': {
+                'metadata': components.MetadataComponent(),
+                'ownership': components.OwnershipComponent(),
+            },
+        }
+        engine.Entity.register_manager(self.manager)
+
+    def test_null_pointer(self):
+        self.manager.register_entity(0, {'type': 'planet'})
+
+        planet = self.manager.get_entity('metadata', 0)
+        self.assertIsNone(planet.owner)
+
+    def test_entity_reference(self):
+        self.manager.register_entity(0, {'type': 'species'})
+        self.manager.register_entity(1, {'type': 'planet', 'owner_id': 0})
+
+        planet = self.manager.get_entity('metadata', 1)
+
+        self.assertIsInstance(planet.owner, engine.Entity)
+        self.assertEqual(planet.owner.serialize(), {'type': 'species'})
+
+    def test_set_reference(self):
+        self.manager.register_entity(0, {'type': 'species'})
+        self.manager.register_entity(1, {'type': 'species'})
+        self.manager.register_entity(2, {'type': 'planet'})
+
+        planet = self.manager.get_entity('metadata', 2)
+        self.assertIsNone(planet.owner)
+        self.assertIsNone(planet.owner_id)
+
+        planet.owner = 0
+        self.assertIsInstance(planet.owner, engine.Entity)
+        self.assertIsInstance(planet.owner_id, int)
+        self.assertEqual(planet.owner.pk, 0)
+        self.assertEqual(planet.owner_id, 0)
+
+        planet.owner = self.manager.get_entity('metadata', 1)
+        self.assertIsInstance(planet.owner, engine.Entity)
+        self.assertIsInstance(planet.owner_id, int)
+        self.assertEqual(planet.owner.pk, 1)
+        self.assertEqual(planet.owner_id, 1)
+
+        planet.owner = None
+        self.assertIsNone(planet.owner)
+        self.assertIsNone(planet.owner_id)
+
+    def test_wrong_owner_type(self):
+        self.manager.register_entity(0, {'type': 'planet'})
+        self.manager.register_entity(1, {'type': 'planet'})
+
+        planet0 = self.manager.get_entity('metadata', 0)
+        planet1 = self.manager.get_entity('metadata', 1)
+
+        self.assertIsNone(planet0.validate())
+        self.assertIsNone(planet1.validate())
+
+        planet1.owner = planet0
+        with self.assertRaises(exceptions.ValidationError) as e:
+            planet1.validate()
+
+        self.assertEqual(str(e.exception), "'owner_id' cannot point to an entity of this type.")
