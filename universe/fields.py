@@ -76,6 +76,10 @@ class CharField(Field):
 
 
 class Reference(Field):
+    def __init__(self, types=None, **kwargs):
+        super().__init__(**kwargs)
+        self.types = types
+
     @property
     def data_name(self):
         return f'{self.name}_id'
@@ -105,5 +109,8 @@ class Reference(Field):
             raise exceptions.ValidationError(f"{self.data_name!r} must be an integer.")
 
         from .engine import Entity
-        if Entity.manager.get_entity('metadata', value) is None:
+        entity = Entity.manager.get_entity('metadata', value)
+        if entity is None:
             raise exceptions.ValidationError(f"{self.data_name!r} is not an existing entity.")
+        if self.types is not None and entity.type not in self.types:
+            raise exceptions.ValidationError(f"{self.data_name!r} cannot point to an entity of this type.")

@@ -251,3 +251,19 @@ class OwnershipComponentTestCase(unittest.TestCase):
         planet.owner = None
         self.assertIsNone(planet.owner)
         self.assertIsNone(planet.owner_id)
+
+    def test_wrong_owner_type(self):
+        self.manager.register_entity(0, {'type': 'planet'})
+        self.manager.register_entity(1, {'type': 'planet'})
+
+        planet0 = self.manager.get_entity('metadata', 0)
+        planet1 = self.manager.get_entity('metadata', 1)
+
+        self.assertIsNone(planet0.validate())
+        self.assertIsNone(planet1.validate())
+
+        planet1.owner = planet0
+        with self.assertRaises(exceptions.ValidationError) as e:
+            planet1.validate()
+
+        self.assertEqual(str(e.exception), "'owner_id' cannot point to an entity of this type.")
