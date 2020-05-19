@@ -75,6 +75,17 @@ class CharField(Field):
             raise exceptions.ValidationError(f"{self.data_name!r} must be a string.")
 
 
+class PrimaryKey(Field):
+    def __init__(self):
+        super().__init__()
+
+    def validate(self, data):
+        super().validate(data)
+        value = data[self.name]
+        if not isinstance(value, int):
+            raise exceptions.ValidationError(f"{self.name!r} must be an integer.")
+
+
 class Reference(Field):
     def __init__(self, types=None, **kwargs):
         super().__init__(**kwargs)

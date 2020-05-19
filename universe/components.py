@@ -51,6 +51,7 @@ class Component(metaclass=MetaComponent):
 class MetadataComponent(Component):
     _name = 'metadata'
 
+    pk = fields.PrimaryKey()
     type = fields.CharField(required=True)
 
 

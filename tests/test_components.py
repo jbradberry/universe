@@ -50,8 +50,17 @@ class ComponentTestCase(unittest.TestCase):
 
 
 class MetadataComponentTestCase(unittest.TestCase):
+    def setUp(self):
+        self.manager = engine.Manager()
+        self.manager._entity_registry = {
+            'something': {
+                'metadata': components.MetadataComponent(),
+            },
+        }
+        engine.Entity.register_manager(self.manager)
+
     def test_simple(self):
-        data = {'type': 'something'}
+        data = {'type': 'something', 'pk': 0}
         component = components.MetadataComponent()
         self.assertEqual(component.serialize(data), data)
 
@@ -219,13 +228,13 @@ class OwnershipComponentTestCase(unittest.TestCase):
         self.assertIsNone(planet.owner)
 
     def test_entity_reference(self):
-        self.manager.register_entity(0, {'type': 'species'})
-        self.manager.register_entity(1, {'type': 'planet', 'owner_id': 0})
+        self.manager.register_entity(0, {'pk': 0, 'type': 'species'})
+        self.manager.register_entity(1, {'pk': 1, 'type': 'planet', 'owner_id': 0})
 
         planet = self.manager.get_entity('metadata', 1)
 
         self.assertIsInstance(planet.owner, engine.Entity)
-        self.assertEqual(planet.owner.serialize(), {'type': 'species'})
+        self.assertEqual(planet.owner.serialize(), {'pk': 0, 'type': 'species'})
 
     def test_set_reference(self):
         self.manager.register_entity(0, {'type': 'species'})
