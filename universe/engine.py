@@ -61,6 +61,7 @@ class Entity:
 
 class Manager:
     def __init__(self):
+        self._seq = 0
         self._components = {}
         self._systems = []
         self._updates = {}
@@ -85,14 +86,17 @@ class Manager:
     def get_entity(self, _type, _id):
         return self._components.get(_type, {}).get(_id)
 
-    def set_entity(self, _type, _id, entity):
-        self._components.setdefault(_type, {})[_id] = entity
+    def set_entity(self, _type, entity):
+        self._components.setdefault(_type, {})[entity.pk] = entity
 
-    def register_entity(self, _id, entity):
-        entity_obj = Entity(**entity)
-        entity_obj.pk = _id
-        for component in entity_obj._components:
-            self.set_entity(component, _id, entity_obj)
+    def register_entity(self, entity):
+        if not isinstance(entity, Entity):
+            entity = Entity(**entity)
+        if entity.pk is None:
+            entity.pk = self._seq
+            self._seq += 1
+        for component in entity._components:
+            self.set_entity(component, entity)
 
     def process(self):
         for system_cls in self._systems:
@@ -100,16 +104,19 @@ class Manager:
             system.process(self)
 
     def import_data(self, data, updates):
-        for _id, entity in (data.get('entities') or {}).items():
-            self.register_entity(_id, entity)
+        if 'seq' in data:
+            self._seq = data['seq']
+        for entity in (data.get('entities') or ()):
+            self.register_entity(entity)
         for entity in self.get_entities('metadata').values():
             entity.validate()
         self._updates = updates
 
     def export_data(self):
-        data = {_id: entity for _id, entity in self.get_entities('metadata').items()}
-
-        return {'entities': {_id: entity.serialize() for _id, entity in data.items()}}
+        return {
+            'seq': self._seq,
+            'entities': [entity.serialize() for entity in self.get_entities('metadata').values()]
+        }
 
 
 class GameState:
