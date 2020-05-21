@@ -1,8 +1,6 @@
 import weakref
 
 from . import components, systems, exceptions
-from .orders import (Move, CargoTransfer, Scrap, BuildInstallation, Terraform,
-                     BuildStation, BuildShip, LaunchMassPacket)
 
 
 class Entity:
@@ -64,7 +62,7 @@ class Manager:
         self._seq = 0
         self._components = {}
         self._systems = []
-        self._updates = {}
+        self._updates = []
 
         self._entity_registry = {}
 
@@ -77,9 +75,6 @@ class Manager:
         _components.append(components.MetadataComponent())
         self._entity_registry[name] = {component._name: component for component in _components}
 
-    def get_updates(self, _id):
-        return self._updates.get(_id, [])
-
     def get_entities(self, _type):
         return self._components.get(_type, {})
 
@@ -89,6 +84,9 @@ class Manager:
     def set_entity(self, _type, entity):
         self._components.setdefault(_type, {})[entity.pk] = entity
 
+    def del_entity(self, _type, entity):
+        self._components.setdefault(_type, {}).pop(entity.pk, None)
+
     def register_entity(self, entity):
         if not isinstance(entity, Entity):
             entity = Entity(**entity)
@@ -97,6 +95,13 @@ class Manager:
             self._seq += 1
         for component in entity._components:
             self.set_entity(component, entity)
+
+        return entity
+
+    def unregister_entity(self, entity):
+        for component in entity._components:
+            self.del_entity(component, entity)
+        entity.pk = None
 
     def process(self):
         for system_cls in self._systems:
@@ -131,7 +136,6 @@ class GameState:
 
         self.manager.register_entity_type('ship', [
             components.PositionComponent(),
-            components.QueueComponent([Move, CargoTransfer, Scrap,]),
             components.OwnershipComponent(),
             components.PopulationComponent(),
             components.MineralInventoryComponent(),
@@ -141,14 +145,15 @@ class GameState:
             components.EnvironmentComponent(),
             components.MineralConcentrationComponent(),
             components.MineralInventoryComponent(),
-            components.QueueComponent([
-                BuildInstallation, Terraform, BuildStation, BuildShip, LaunchMassPacket,
-            ]),
             components.OwnershipComponent(),
             components.PopulationComponent(),
         ])
         self.manager.register_entity_type('species', [
             components.SpeciesComponent(),
+        ])
+        self.manager.register_entity_type('movement_order', [
+            components.OrderComponent(),
+            components.MovementComponent(),
         ])
         Entity.register_manager(self.manager)
 

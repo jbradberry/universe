@@ -33,7 +33,6 @@ class PopulationTestCase(unittest.TestCase):
                     'boranium_conc': 50,
                     'germanium_conc': 50,
                     'owner_id': 0,
-                    'queue': [],
                 },
             ]
         }
@@ -73,7 +72,6 @@ class PopulationTestCase(unittest.TestCase):
                     'boranium_conc': 50,
                     'germanium_conc': 50,
                     'owner_id': 0,
-                    'queue': [],
                 },
             ]
         }
@@ -122,7 +120,6 @@ class PopulationTestCase(unittest.TestCase):
                     'boranium_conc': 50,
                     'germanium_conc': 50,
                     'owner_id': 0,
-                    'queue': [],
                 },
             ]
         }
@@ -168,7 +165,6 @@ class PopulationTestCase(unittest.TestCase):
                     'boranium_conc': 50,
                     'germanium_conc': 50,
                     'owner_id': 0,
-                    'queue': [],
                 },
             ]
         }
@@ -216,7 +212,6 @@ class PopulationTestCase(unittest.TestCase):
                     'boranium_conc': 50,
                     'germanium_conc': 50,
                     'owner_id': 0,
-                    'queue': [],
                 },
             ]
         }
@@ -258,7 +253,6 @@ class PopulationTestCase(unittest.TestCase):
                     'boranium_conc': 50,
                     'germanium_conc': 50,
                     'owner_id': 0,
-                    'queue': [],
                 },
             ]
         }

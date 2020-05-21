@@ -276,3 +276,101 @@ class OwnershipComponentTestCase(unittest.TestCase):
             planet1.validate()
 
         self.assertEqual(str(e.exception), "'owner_id' cannot point to an entity of this type.")
+
+
+class MovementComponentTestCase(unittest.TestCase):
+    def setUp(self):
+        self.manager = engine.Manager()
+        self.manager._entity_registry = {
+            'species': {
+                'metadata': components.MetadataComponent(),
+            },
+            'planet': {
+                'metadata': components.MetadataComponent(),
+                'ownership': components.OwnershipComponent(),
+            },
+            'ship': {
+                'metadata': components.MetadataComponent(),
+                'ownership': components.OwnershipComponent(),
+            },
+            'movement_order': {
+                'metadata': components.MetadataComponent(),
+                'orders': components.OrderComponent(),
+                'movement_orders': components.MovementComponent(),
+            },
+        }
+        engine.Entity.register_manager(self.manager)
+
+    def test_valid_to_coordinates(self):
+        species = self.manager.register_entity({'type': 'species'})
+        ship = self.manager.register_entity({'type': 'ship', 'owner_id': species.pk})
+        order = self.manager.register_entity(
+            {'type': 'movement_order', 'actor_id': ship.pk, 'seq': 0, 'warp': 10, 'x_t': 500, 'y_t': 500})
+
+        self.assertIsNone(order.validate())
+
+    def test_valid_to_target(self):
+        species = self.manager.register_entity({'type': 'species'})
+        planet = self.manager.register_entity({'type': 'planet'})
+        ship = self.manager.register_entity({'type': 'ship', 'owner_id': species.pk})
+        order = self.manager.register_entity(
+            {'type': 'movement_order', 'actor_id': ship.pk, 'seq': 0, 'warp': 10, 'target_id': planet.pk})
+
+        self.assertIsNone(order.validate())
+
+    def test_wrong_actor_type(self):
+        species = self.manager.register_entity({'type': 'species'})
+        planet = self.manager.register_entity({'type': 'planet', 'owner_id': species.pk})
+        order = self.manager.register_entity(
+            {'type': 'movement_order', 'actor_id': planet.pk, 'seq': 0, 'warp': 10, 'x_t': 500, 'y_t': 500})
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            order.validate()
+
+        self.assertEqual(str(e.exception), "The acting object must be a ship.")
+
+    def test_wrong_target_type(self):
+        species = self.manager.register_entity({'type': 'species'})
+        ship = self.manager.register_entity({'type': 'ship', 'owner_id': species.pk})
+        order = self.manager.register_entity(
+            {'type': 'movement_order', 'actor_id': ship.pk, 'seq': 0, 'warp': 10, 'target_id': species.pk})
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            order.validate()
+
+        self.assertEqual(str(e.exception), "'target_id' cannot point to an entity of this type.")
+
+    def test_no_goal(self):
+        species = self.manager.register_entity({'type': 'species'})
+        ship = self.manager.register_entity({'type': 'ship', 'owner_id': species.pk})
+        order = self.manager.register_entity(
+            {'type': 'movement_order', 'actor_id': ship.pk, 'seq': 0, 'warp': 10})
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            order.validate()
+
+        self.assertEqual(str(e.exception), "Either of 'target_id' or the target coordinates must be set.")
+
+    def test_two_goals(self):
+        species = self.manager.register_entity({'type': 'species'})
+        planet = self.manager.register_entity({'type': 'planet'})
+        ship = self.manager.register_entity({'type': 'ship', 'owner_id': species.pk})
+        order = self.manager.register_entity(
+            {'type': 'movement_order', 'actor_id': ship.pk, 'seq': 0, 'warp': 10,
+             'x_t': 500, 'y_t': 500, 'target_id': planet.pk})
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            order.validate()
+
+        self.assertEqual(str(e.exception), "Either of 'target_id' or the target coordinates must be set.")
+
+    def test_self_move(self):
+        species = self.manager.register_entity({'type': 'species'})
+        ship = self.manager.register_entity({'type': 'ship', 'owner_id': species.pk})
+        order = self.manager.register_entity(
+            {'type': 'movement_order', 'actor_id': ship.pk, 'seq': 0, 'warp': 10, 'target_id': ship.pk})
+
+        with self.assertRaises(exceptions.ValidationError) as e:
+            order.validate()
+
+        self.assertEqual(str(e.exception), "A ship cannot target itself for a movement order.")

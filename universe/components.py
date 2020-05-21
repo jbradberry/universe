@@ -65,15 +65,6 @@ class PositionComponent(Component):
     y_prev = fields.IntField(required=False)
 
 
-class QueueComponent(Component):
-    _name = 'queue'
-
-    queue = fields.ListField()
-
-    def __init__(self, order_types):
-        self._order_types = order_types
-
-
 class SpeciesComponent(Component):
     _name = 'species'
 
@@ -188,3 +179,33 @@ class MineralInventoryComponent(Component):
     ironium = fields.IntField(min=0, required=False)
     boranium = fields.IntField(min=0, required=False)
     germanium = fields.IntField(min=0, required=False)
+
+
+class OrderComponent(Component):
+    _name = 'orders'
+
+    actor = fields.Reference(types=['planet', 'ship'])
+    seq = fields.IntField(min=0)
+
+
+class MovementComponent(Component):
+    _name = 'movement_orders'
+
+    warp = fields.IntField(min=0)
+    x_t = fields.IntField(required=False)
+    y_t = fields.IntField(required=False)
+    target = fields.Reference(types=['planet', 'ship'], required=False)
+
+    def validate(self, data):
+        super().validate(data)
+
+        from .engine import Entity
+        actor = Entity.manager.get_entity('metadata', data['actor_id'])
+        if actor.type != 'ship':
+            raise exceptions.ValidationError("The acting object must be a ship.")
+
+        if data['actor_id'] == data.get('target_id'):
+            raise exceptions.ValidationError("A ship cannot target itself for a movement order.")
+
+        if (data.get('target_id') is None) == (data.get('x_t') is None or data.get('y_t') is None):
+            raise exceptions.ValidationError("Either of 'target_id' or the target coordinates must be set.")

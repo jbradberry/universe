@@ -99,36 +99,6 @@ class IntFieldTestCase(unittest.TestCase):
         self.assertEqual(str(e.exception), "'widgets' must be less than or equal to 100.")
 
 
-class ListFieldTestCase(unittest.TestCase):
-    def test_not_required(self):
-        field = fields.ListField(required=False)
-        field.name = 'queue'
-
-        self.assertIsNone(field.validate({}))
-
-    def test_explicit_required(self):
-        field = fields.ListField(required=True)
-        field.name = 'queue'
-
-        with self.assertRaises(exceptions.ValidationError) as e:
-            field.validate({})
-        self.assertEqual(str(e.exception), "'queue' is required.")
-
-    def test_bad_type(self):
-        field = fields.ListField(required=True)
-        field.name = 'queue'
-
-        with self.assertRaises(exceptions.ValidationError) as e:
-            field.validate({'queue': 0})
-        self.assertEqual(str(e.exception), "'queue' must be a list.")
-
-    def test_empty_list_is_valid(self):
-        field = fields.ListField(required=True)
-        field.name = 'queue'
-
-        self.assertIsNone(field.validate({'queue': []}))
-
-
 class CharFieldTestCase(unittest.TestCase):
     def test_not_required(self):
         field = fields.CharField(required=False)
