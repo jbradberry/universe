@@ -1,3 +1,4 @@
+from collections import defaultdict
 from decimal import Decimal
 
 from . import utils
@@ -5,108 +6,110 @@ from . import utils
 
 class UpdateSystem:
     def process(self, manager):
-        for _id, entity in manager.get_entities('queue').items():
-            queue = entity.queue
-            indexed_queue = dict(enumerate(queue))
+        queues = defaultdict(dict)
+        for order in manager.get_entities('orders').values():
+            queues[order.actor_id][order.seq] = order
 
-            for action in manager.get_updates(_id):
-                seq = action.pop('seq')
-                indexed_queue[seq] = action
-
-            entity.queue = [action for seq, action in sorted(indexed_queue.items())]
+        for action in manager._updates:
+            order = manager.register_entity(action)
+            if order.seq in queues[order.actor_id]:
+                manager.unregister_entity(queues[order.actor_id][order.seq])
+            queues[order.actor_id][order.seq] = order
 
 
 class MovementSystem:
     N = 1000
 
-    def _vector_to_target(self, entity, manager):
-        move = entity.queue[0]
-        speed = Decimal(move['warp'] ** 2) / self.N
+    def _vector_to_target(self, move):
+        speed = Decimal(move.warp ** 2) / self.N
 
-        if 'target_id' in move:
-            target_entity = manager.get_entity('position', move['target_id'])
-            x_t, y_t = target_entity.x, target_entity.y
+        if move.target is not None:
+            x_t, y_t = move.target.x, move.target.y
         else:
-            x_t, y_t = move['x_t'], move['y_t']
+            x_t, y_t = move.x_t, move.y_t
 
         # Aim for the midpoint of the 1-light-year sector the goal is in.
-        dx, dy = Decimal(x_t).to_integral_value() - entity.x, Decimal(y_t).to_integral_value() - entity.y
+        try:
+            dx, dy = Decimal(x_t).to_integral_value() - move.actor.x, Decimal(y_t).to_integral_value() - move.actor.y
+        except Exception:
+            raise Exception(repr(move.actor.serialize()))
 
         D = Decimal(dx ** 2 + dy ** 2).sqrt()
         if D.to_integral_value() <= speed:
-            entity.dx, entity.dy = dx, dy
+            move.actor.dx, move.actor.dy = dx, dy
         else:
-            entity.dx, entity.dy = speed * dx / D, speed * dy / D
+            move.actor.dx, move.actor.dy = speed * dx / D, speed * dy / D
 
         # The naive prediction of the endpoint for this object
         remaining = self.N - self.step
-        x_p = (entity.x + remaining * entity.dx).to_integral_value()
-        y_p = (entity.y + remaining * entity.dy).to_integral_value()
-        if not hasattr(entity, 'x_p'):
-            entity.x_p, entity.y_p = x_p, y_p
+        x_p = (move.actor.x + remaining * move.actor.dx).to_integral_value()
+        y_p = (move.actor.y + remaining * move.actor.dy).to_integral_value()
+        if not hasattr(move.actor, 'x_p'):
+            move.actor.x_p, move.actor.y_p = x_p, y_p
         # If the projected endpoint is not stable, intercepting objects should just use Euler.
-        if (entity.x_p, entity.y_p) != (x_p, y_p):
-            entity.x_p, entity.y_p = None, None
+        if (move.actor.x_p, move.actor.y_p) != (x_p, y_p):
+            move.actor.x_p, move.actor.y_p = None, None
 
-    def _vector_to_projection(self, entity, manager):
+    def _vector_to_projection(self, move):
         # Update the real vector of this object based on the (non-updated) observable vector of its target.
-        move = entity.queue[0]
-        if 'target_id' not in move:
+        if move.target is None:
             return
 
-        target_entity = manager.get_entity('position', move['target_id'])
         # Only proceed with moving towards the target's projected endpoint if it is stable.
-        if getattr(target_entity, 'x_p', None) is None:
+        if getattr(move.target, 'x_p', None) is None:
             return
 
-        x_p, y_p = target_entity.x_p, target_entity.y_p
-        dx, dy = x_p - entity.x, y_p - entity.y
+        x_p, y_p = move.target.x_p, move.target.y_p
+        dx, dy = x_p - move.actor.x, y_p - move.actor.y
 
-        speed = Decimal(move['warp'] ** 2) / self.N
+        speed = Decimal(move.warp ** 2) / self.N
         D = Decimal(dx ** 2 + dy ** 2).sqrt()
         if D.to_integral_value() <= speed:
-            entity.dx, entity.dy = dx, dy
+            move.actor.dx, move.actor.dy = dx, dy
         else:
-            entity.dx, entity.dy = speed * dx / D, speed * dy / D
+            move.actor.dx, move.actor.dy = speed * dx / D, speed * dy / D
 
     def process(self, manager):
-        movements = {
-            _id: entity
-            for _id, entity in manager.get_entities('queue').items()
-            if entity.queue
-        }
+        movements = defaultdict(list)
+        for move in manager.get_entities('movement_orders').values():
+            movements[move.actor_id].append(move)
+
+        movements = {_id: sorted(queue, key=lambda x: x.seq) for _id, queue in movements.items() if queue}
 
         for _id, entity in manager.get_entities('position').items():
             entity.x_prev, entity.y_prev = entity.x, entity.y
 
         for self.step in range(self.N):
-            for entity in movements.values():
-                self._vector_to_target(entity, manager)
+            for queue in movements.values():
+                self._vector_to_target(queue[0])
 
-            for entity in movements.values():
-                self._vector_to_projection(entity, manager)
+            for queue in movements.values():
+                self._vector_to_projection(queue[0])
 
-            for entity in movements.values():
+            for queue in movements.values():
+                entity = queue[0].actor
                 dx, dy = entity.dx or Decimal(0), entity.dy or Decimal(0)
                 entity.x, entity.y = entity.x + dx, entity.y + dy
 
-        for _id, entity in movements.items():
+        for queue in movements.values():
+            entity = queue[0].actor
             entity.x, entity.y = int(entity.x.to_integral_value()), int(entity.y.to_integral_value())
 
         # drop any waypoints that have been reached
-        for _id, entity in manager.get_entities('queue').items():
-            if not entity.queue:
-                continue
-            move = entity.queue[0]
+        for queue in movements.values():
+            move = queue[0]
+            entity = move.actor
             x, y = entity.x, entity.y
-            if 'target_id' in move:
-                target_entity = manager.get_entity('position', move['target_id'])
-                x_t, y_t = target_entity.x, target_entity.y
+            if move.target is not None:
+                x_t, y_t = move.target.x, move.target.y
             else:
-                x_t, y_t = move['x_t'], move['y_t']
+                x_t, y_t = move.x_t, move.y_t
 
             if (x, y) == (x_t, y_t):
-                entity.queue.pop(0)
+                manager.unregister_entity(move)
+                queue.pop(0)
+                for i, order in enumerate(queue):
+                    order.seq = i
 
 
 class PopulationGrowthSystem:

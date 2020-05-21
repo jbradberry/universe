@@ -55,16 +55,6 @@ class IntField(Field):
             raise exceptions.ValidationError(f"{self.data_name!r} must be less than or equal to {self.max}.")
 
 
-class ListField(Field):
-    def validate(self, data):
-        super().validate(data)
-        if self.data_name not in data:
-            return
-        value = data[self.data_name]
-        if not isinstance(value, list):
-            raise exceptions.ValidationError(f"{self.data_name!r} must be a list.")
-
-
 class CharField(Field):
     def validate(self, data):
         super().validate(data)
