@@ -6,15 +6,29 @@ from . import utils
 
 class UpdateSystem:
     def process(self, manager):
-        queues = defaultdict(dict)
+        queues = {}
         for order in manager.get_entities('orders').values():
-            queues[order.actor_id][order.seq] = order
+            queues[(order.actor_id, order.seq)] = order
 
-        for action in manager._updates:
-            order = manager.register_entity(action)
-            if order.seq in queues[order.actor_id]:
-                manager.unregister_entity(queues[order.actor_id][order.seq])
-            queues[order.actor_id][order.seq] = order
+        for data in manager._updates:
+            action = data.pop('action')
+            if action == 'create':
+                order = manager.register_entity(data)
+                queues[(order.actor_id, order.seq)] = order
+            elif action == 'reorder':
+                order1 = queues.pop((data['actor_id'], data['seq1']))
+                order2 = queues.pop((data['actor_id'], data['seq2']))
+                order1.seq, order2.seq = order2.seq, order1.seq
+                queues[(order1.actor_id, order1.seq)] = order1
+                queues[(order2.actor_id, order2.seq)] = order2
+            elif action == 'update':
+                order = queues[(data['actor_id'], data['seq'])]
+                for k, v in data.items():
+                    setattr(order, k, v)
+            elif action == 'delete':
+                key = (data['actor_id'], data['seq'])
+                manager.unregister_entity(queues[key])
+                del queues[key]
 
 
 class MovementSystem:
@@ -29,10 +43,7 @@ class MovementSystem:
             x_t, y_t = move.x_t, move.y_t
 
         # Aim for the midpoint of the 1-light-year sector the goal is in.
-        try:
-            dx, dy = Decimal(x_t).to_integral_value() - move.actor.x, Decimal(y_t).to_integral_value() - move.actor.y
-        except Exception:
-            raise Exception(repr(move.actor.serialize()))
+        dx, dy = Decimal(x_t).to_integral_value() - move.actor.x, Decimal(y_t).to_integral_value() - move.actor.y
 
         D = Decimal(dx ** 2 + dy ** 2).sqrt()
         if D.to_integral_value() <= speed:

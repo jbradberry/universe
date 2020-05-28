@@ -28,14 +28,22 @@ class EntityTestCase(unittest.TestCase):
             ]
         }
 
-        S = engine.GameState(state, {})
         with self.assertRaises(exceptions.ValidationError) as e:
-            results = S.generate()
+            S = engine.GameState(state, {})
 
         self.assertEqual(str(e.exception), "'owner_id' is not an existing entity.")
 
 
 class PersistenceTestCase(unittest.TestCase):
+    def test_empty_universe(self):
+        state = {'turn': 2500, 'width': 1000, 'entities': []}
+
+        S = engine.GameState(state, {})
+        results = S.generate()
+
+        self.assertEqual(results,
+                         {'turn': 2501, 'width': 1000, 'seq': 0, 'entities': []})
+
     def test_planet(self):
         state = {
             'turn': 2500, 'width': 1000, 'seq': 2,
@@ -167,20 +175,11 @@ class PersistenceTestCase(unittest.TestCase):
 
 
 class MovementTestCase(unittest.TestCase):
-    def test_empty_universe(self):
-        state = {'turn': 2500, 'width': 1000, 'entities': []}
-
-        S = engine.GameState(state, [])
-        results = S.generate()
-
-        self.assertEqual(results,
-                         {'turn': 2501, 'width': 1000, 'seq': 0, 'entities': []})
-
     def test_one_stationary_object(self):
         state = {'turn': 2500, 'width': 1000, 'seq': 1,
                  'entities': [{'pk': 0, 'type': 'ship', 'x': 456, 'y': 337}]}
 
-        S = engine.GameState(state, [])
+        S = engine.GameState(state, {})
         results = S.generate()
 
         self.assertEqual(results['turn'], 2501)
@@ -191,12 +190,16 @@ class MovementTestCase(unittest.TestCase):
         )
 
     def test_one_object_single_turn_move(self):
-        state = {'turn': 2500, 'width': 1000, 'seq': 1,
-                 'entities': [{'pk': 0, 'type': 'ship', 'x': 480, 'y': 235}]}
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 1,
+            'entities': [
+                {'pk': 0, 'type': 'ship', 'x': 480, 'y': 235},
+                {'pk': 1, 'type': 'movement_order', 'actor_id': 0, 'seq': 0, 'x_t': 422, 'y_t': 210, 'warp': 10}
+            ]
+        }
         # actual speed is warp**2
-        updates = [{'type': 'movement_order', 'actor_id': 0, 'seq': 0, 'x_t': 422, 'y_t': 210, 'warp': 10}]
 
-        S = engine.GameState(state, updates)
+        S = engine.GameState(state, {})
         results = S.generate()
 
         self.assertEqual(results['turn'], 2501)
@@ -207,12 +210,16 @@ class MovementTestCase(unittest.TestCase):
         )
 
     def test_multi_turn_single_move(self):
-        state = {'turn': 2500, 'width': 1000, 'seq': 1,
-                 'entities': [{'pk': 0, 'type': 'ship', 'x': 480, 'y': 235}]}
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 1,
+            'entities': [
+                {'pk': 0, 'type': 'ship', 'x': 480, 'y': 235},
+                {'pk': 1, 'type': 'movement_order', 'actor_id': 0, 'seq': 0, 'x_t': 168, 'y_t': 870, 'warp': 10}
+            ]
+        }
         # actual speed is warp**2
-        updates = [{'type': 'movement_order', 'actor_id': 0, 'seq': 0, 'x_t': 168, 'y_t': 870, 'warp': 10}]
 
-        S = engine.GameState(state, updates)
+        S = engine.GameState(state, {})
         results = S.generate()
 
         self.assertEqual(results['turn'], 2501)
@@ -221,66 +228,6 @@ class MovementTestCase(unittest.TestCase):
             results['entities'],
             [{'pk': 0, 'type': 'ship', 'x': 436, 'x_prev': 480, 'y': 325, 'y_prev': 235},
              {'pk': 1, 'type': 'movement_order', 'actor_id': 0, 'seq': 0, 'x_t': 168, 'y_t': 870, 'warp': 10}]
-        )
-
-    def test_previously_queued_move(self):
-        state = {
-            'turn': 2500, 'width': 1000, 'seq': 2,
-            'entities': [
-                {'pk': 0, 'type': 'ship', 'x': 480, 'y': 235},
-                {'pk': 1, 'type': 'movement_order', 'actor_id': 0, 'seq': 0, 'x_t': 422, 'y_t': 210, 'warp': 10},
-            ]
-        }
-
-        S = engine.GameState(state, [])
-        results = S.generate()
-
-        self.assertEqual(results['turn'], 2501)
-        self.assertEqual(results['width'], 1000)
-        self.assertEqual(
-            results['entities'],
-            [{'pk': 0, 'type': 'ship', 'x': 422, 'x_prev': 480, 'y': 210, 'y_prev': 235}]
-        )
-
-    def test_replace_queued_move(self):
-        state = {
-            'turn': 2500, 'width': 1000, 'seq': 2,
-            'entities': [
-                {'pk': 0, 'type': 'ship', 'x': 480, 'y': 235},
-                {'pk': 1, 'type': 'movement_order', 'actor_id': 0, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8},
-            ]
-        }
-        updates = [{'type': 'movement_order', 'actor_id': 0, 'seq': 0, 'x_t': 422, 'y_t': 210, 'warp': 10}]
-
-        S = engine.GameState(state, updates)
-        results = S.generate()
-
-        self.assertEqual(results['turn'], 2501)
-        self.assertEqual(results['width'], 1000)
-        self.assertEqual(
-            results['entities'],
-            [{'pk': 0, 'type': 'ship', 'x': 422, 'x_prev': 480, 'y': 210, 'y_prev': 235}]
-        )
-
-    def test_add_to_queued_moves(self):
-        state = {
-            'turn': 2500, 'width': 1000, 'seq': 2,
-            'entities': [
-                {'pk': 0, 'type': 'ship', 'x': 480, 'y': 235},
-                {'pk': 1, 'type': 'movement_order', 'actor_id': 0, 'seq': 0, 'x_t': 422, 'y_t': 210, 'warp': 10},
-            ]
-        }
-        updates = [{'type': 'movement_order', 'actor_id': 0, 'seq': 1, 'x_t': 637, 'y_t': 786, 'warp': 8}]
-
-        S = engine.GameState(state, updates)
-        results = S.generate()
-
-        self.assertEqual(results['turn'], 2501)
-        self.assertEqual(results['width'], 1000)
-        self.assertEqual(
-            results['entities'],
-            [{'pk': 0, 'type': 'ship', 'x': 422, 'x_prev': 480, 'y': 210, 'y_prev': 235},
-             {'pk': 2, 'type': 'movement_order', 'actor_id': 0, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8}]
         )
 
     def test_slow_motion(self):
@@ -312,7 +259,7 @@ class MovementTestCase(unittest.TestCase):
             ]
         }
 
-        S = engine.GameState(state, [])
+        S = engine.GameState(state, {})
         results = S.generate()
 
         self.assertEqual(results['turn'], 2501)
@@ -334,7 +281,7 @@ class MovementTestCase(unittest.TestCase):
             ]
         }
 
-        S = engine.GameState(state, [])
+        S = engine.GameState(state, {})
         results = S.generate()
 
         self.assertEqual(results['turn'], 2501)
@@ -402,7 +349,7 @@ class MovementTestCase(unittest.TestCase):
             ]
         }
 
-        S = engine.GameState(state, [])
+        S = engine.GameState(state, {})
         results = S.generate()
 
         self.assertEqual(results['turn'], 2501)
@@ -424,7 +371,7 @@ class MovementTestCase(unittest.TestCase):
             ]
         }
 
-        S = engine.GameState(state, [])
+        S = engine.GameState(state, {})
         results = S.generate()
 
         self.assertEqual(results['turn'], 2501)
@@ -448,7 +395,7 @@ class MovementTestCase(unittest.TestCase):
             ]
         }
 
-        S = engine.GameState(state, [])
+        S = engine.GameState(state, {})
         results = S.generate()
 
         self.assertEqual(results['turn'], 2501)

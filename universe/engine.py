@@ -115,7 +115,19 @@ class Manager:
             self.register_entity(entity)
         for entity in self.get_entities('metadata').values():
             entity.validate()
-        self._updates = updates
+
+        for species_id, S in updates.items():
+            if self.get_entity('species', species_id) is None:
+                continue  # FIXME: we should log an error
+            for item in S:
+                actor = self.get_entity('metadata', item['actor_id'])
+                if actor is None:
+                    continue  # FIXME: we should log an error
+                if actor.type not in ('ship', 'planet'):
+                    continue
+                if actor.owner_id != species_id:
+                    continue
+                self._updates.append(item)
 
     def export_data(self):
         return {
@@ -156,13 +168,15 @@ class GameState:
             components.MovementComponent(),
         ])
         Entity.register_manager(self.manager)
+        self.load_data()
 
         self.new = {}
 
+    def load_data(self):
+        self.manager.import_data(self.old, self.updates)
+
     def generate(self):
         self.new_headers()
-
-        self.manager.import_data(self.old, self.updates)
         self.manager.process()
         self.new.update(self.manager.export_data())
 
