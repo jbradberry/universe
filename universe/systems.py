@@ -10,11 +10,40 @@ class UpdateSystem:
         for order in manager.get_entities('orders').values():
             queues[order.actor_id][order.seq] = order
 
-        for action in manager._updates:
-            order = manager.register_entity(action)
-            if order.seq in queues[order.actor_id]:
-                manager.unregister_entity(queues[order.actor_id][order.seq])
-            queues[order.actor_id][order.seq] = order
+        for data in manager._updates:
+            action = data.pop('action')
+            if action == 'create':
+                if data['actor_id'] in queues and data['seq'] in queues[data['actor_id']]:
+                    continue
+                order = manager.register_entity(data)
+                queues[order.actor_id][order.seq] = order
+            elif action == 'reorder':
+                if data['actor_id'] not in queues:
+                    continue
+                if data['seq1'] not in queues[data['actor_id']]:
+                    continue
+                if data['seq2'] not in queues[data['actor_id']]:
+                    continue
+                order1 = queues[data['actor_id']].pop(data['seq1'], None)
+                order2 = queues[data['actor_id']].pop(data['seq2'], None)
+                order1.seq, order2.seq = order2.seq, order1.seq
+                queues[order1.actor_id][order1.seq] = order1
+                queues[order2.actor_id][order2.seq] = order2
+            elif action == 'update':
+                if data['actor_id'] not in queues:
+                    continue
+                if data['seq'] not in queues[data['actor_id']]:
+                    continue
+                order = queues[data['actor_id']][data['seq']]
+                for k, v in data.items():
+                    setattr(order, k, v)
+            elif action == 'delete':
+                if data['actor_id'] not in queues:
+                    continue
+                if data['seq'] not in queues[data['actor_id']]:
+                    continue
+                manager.unregister_entity(queues[data['actor_id']][data['seq']])
+                del queues[data['actor_id']][data['seq']]
 
 
 class MovementSystem:
@@ -29,10 +58,7 @@ class MovementSystem:
             x_t, y_t = move.x_t, move.y_t
 
         # Aim for the midpoint of the 1-light-year sector the goal is in.
-        try:
-            dx, dy = Decimal(x_t).to_integral_value() - move.actor.x, Decimal(y_t).to_integral_value() - move.actor.y
-        except Exception:
-            raise Exception(repr(move.actor.serialize()))
+        dx, dy = Decimal(x_t).to_integral_value() - move.actor.x, Decimal(y_t).to_integral_value() - move.actor.y
 
         D = Decimal(dx ** 2 + dy ** 2).sqrt()
         if D.to_integral_value() <= speed:

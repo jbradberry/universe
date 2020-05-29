@@ -1,10 +1,445 @@
 import unittest
 
-from universe import engine
-from universe import systems
+from universe import engine, systems
 
 
-class PopulationTestCase(unittest.TestCase):
+class UpdateTestCase(unittest.TestCase):
+    def test_create(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 2,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+            ]
+        }
+        updates = {
+            0: [
+                {'action': 'create', 'type': 'movement_order', 'actor_id': 1, 'seq': 0,
+                 'x_t': 637, 'y_t': 786, 'warp': 8}
+            ],
+        }
+
+        S = engine.GameState(state, updates)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(
+            orders[2].serialize(),
+            {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0,
+             'x_t': 637, 'y_t': 786, 'warp': 8}
+        )
+
+    def test_create_with_existing(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 3,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8}
+            ]
+        }
+        updates = {
+            0: [
+                {'action': 'create', 'type': 'movement_order', 'actor_id': 1, 'seq': 1,
+                 'x_t': 422, 'y_t': 210, 'warp': 10}
+            ],
+        }
+
+        S = engine.GameState(state, updates)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 2)
+        self.assertEqual(
+            orders[3].serialize(),
+            {'pk': 3, 'type': 'movement_order', 'actor_id': 1, 'seq': 1,
+             'x_t': 422, 'y_t': 210, 'warp': 10}
+        )
+
+    def test_create_with_conflict(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 3,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8}
+            ]
+        }
+        updates = {
+            0: [
+                {'action': 'create', 'type': 'movement_order', 'actor_id': 1, 'seq': 0,
+                 'x_t': 422, 'y_t': 210, 'warp': 10}
+            ],
+        }
+
+        S = engine.GameState(state, updates)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(
+            orders[2].serialize(),
+            {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0,
+             'x_t': 637, 'y_t': 786, 'warp': 8}
+        )
+
+    def test_reorder(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 4,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8},
+                {'pk': 3, 'type': 'movement_order', 'actor_id': 1, 'seq': 1, 'x_t': 422, 'y_t': 210, 'warp': 10}
+            ]
+        }
+        updates = {
+            0: [
+                {'action': 'reorder', 'actor_id': 1, 'seq1': 0, 'seq2': 1}
+            ],
+        }
+
+        S = engine.GameState(state, updates)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 2)
+        self.assertEqual(
+            orders[2].serialize(),
+            {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 1, 'x_t': 637, 'y_t': 786, 'warp': 8}
+        )
+        self.assertEqual(
+            orders[3].serialize(),
+            {'pk': 3, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 422, 'y_t': 210, 'warp': 10}
+        )
+
+    def test_reorder_does_not_exist(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 4,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8},
+                {'pk': 3, 'type': 'movement_order', 'actor_id': 1, 'seq': 1, 'x_t': 422, 'y_t': 210, 'warp': 10}
+            ]
+        }
+        updates = {
+            0: [
+                {'action': 'reorder', 'actor_id': 1, 'seq1': 0, 'seq2': 2}
+            ],
+        }
+
+        S = engine.GameState(state, updates)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 2)
+        self.assertEqual(
+            orders[2].serialize(),
+            {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8}
+        )
+        self.assertEqual(
+            orders[3].serialize(),
+            {'pk': 3, 'type': 'movement_order', 'actor_id': 1, 'seq': 1, 'x_t': 422, 'y_t': 210, 'warp': 10}
+        )
+
+    def test_update(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 3,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8},
+            ]
+        }
+        updates = {
+            0: [
+                {'action': 'update', 'type': 'movement_order', 'actor_id': 1, 'seq': 0,
+                 'x_t': 422, 'y_t': 210, 'warp': 10}
+            ]
+        }
+
+        S = engine.GameState(state, updates)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(
+            orders[2].serialize(),
+            {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 422, 'y_t': 210, 'warp': 10}
+        )
+
+    def test_update_does_not_exist(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 3,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8},
+            ]
+        }
+        updates = {
+            0: [
+                {'action': 'update', 'type': 'movement_order', 'actor_id': 1, 'seq': 1,
+                 'x_t': 422, 'y_t': 210, 'warp': 10}
+            ]
+        }
+
+        S = engine.GameState(state, updates)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(
+            orders[2].serialize(),
+            {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8}
+        )
+
+    def test_delete(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 3,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8},
+            ]
+        }
+        updates = {
+            0: [
+                {'action': 'delete', 'actor_id': 1, 'seq': 0}
+            ]
+        }
+
+        S = engine.GameState(state, updates)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 0)
+
+    def test_delete_does_not_exist(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 3,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8},
+            ]
+        }
+        updates = {
+            0: [
+                {'action': 'delete', 'actor_id': 1, 'seq': 1}
+            ]
+        }
+
+        S = engine.GameState(state, updates)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(
+            orders[2].serialize(),
+            {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8}
+        )
+
+    def test_issued_by_non_existent_species(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 3,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8},
+            ]
+        }
+        updates = {
+            1: [
+                {'action': 'delete', 'actor_id': 1, 'seq': 0}
+            ]
+        }
+
+        S = engine.GameState(state, updates)
+        self.assertEqual(len(S.manager._updates), 0)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(
+            orders[2].serialize(),
+            {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8}
+        )
+
+    def test_issued_for_non_existent_entity(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 3,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 1, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8},
+            ]
+        }
+        updates = {
+            0: [
+                {'action': 'delete', 'actor_id': 3, 'seq': 0}
+            ]
+        }
+
+        S = engine.GameState(state, updates)
+        self.assertEqual(len(S.manager._updates), 0)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(
+            orders[2].serialize(),
+            {'pk': 2, 'type': 'movement_order', 'actor_id': 1, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8}
+        )
+
+    def test_issued_by_wrong_species(self):
+        state = {
+            'turn': 2500, 'width': 1000, 'seq': 4,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {
+                    'pk': 1,
+                    'type': 'species',
+                    'name': 'Romulan',
+                    'plural_name': 'Romulans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                },
+                {'pk': 2, 'type': 'ship', 'x': 480, 'y': 235, 'owner_id': 0},
+                {'pk': 3, 'type': 'movement_order', 'actor_id': 2, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8},
+            ]
+        }
+        updates = {
+            1: [
+                {'action': 'delete', 'actor_id': 2, 'seq': 0}
+            ]
+        }
+
+        S = engine.GameState(state, updates)
+        self.assertEqual(len(S.manager._updates), 0)
+        systems.UpdateSystem().process(S.manager)
+
+        orders = S.manager.get_entities('orders')
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(
+            orders[3].serialize(),
+            {'pk': 3, 'type': 'movement_order', 'actor_id': 2, 'seq': 0, 'x_t': 637, 'y_t': 786, 'warp': 8}
+        )
+
+
+class PopulationGrowthTestCase(unittest.TestCase):
     def test_habitability_growth(self):
         state = {
             'turn': 2500,
