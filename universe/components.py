@@ -72,6 +72,10 @@ class SpeciesComponent(Component):
     plural_name = fields.CharField(required=True)
     growth_rate = fields.IntField(required=True)
 
+
+class SpeciesEnvironmentComponent(Component):
+    _name = 'species_environment'
+
     gravity_min = fields.IntField(min=0, max=100, required=False)
     gravity_max = fields.IntField(min=0, max=100, required=False)
     gravity_immune = fields.BooleanField()
@@ -113,6 +117,16 @@ class SpeciesComponent(Component):
             if 'radiation_min' not in data or 'radiation_max' not in data:
                 raise exceptions.ValidationError(
                     "'radiation_min' and 'radiation_max' must be set if 'radiation_immune' is false.")
+
+
+class SpeciesProductionComponent(Component):
+    _name = 'species_production'
+
+    population_per_r = fields.IntField(min=700)
+
+    minerals_per_m = fields.IntField(min=5, max=25)
+    mines_cost_r = fields.IntField(min=2, max=15)
+    mines_per_pop = fields.IntField(min=5, max=25)
 
 
 class OwnershipComponent(Component):

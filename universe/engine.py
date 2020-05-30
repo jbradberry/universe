@@ -146,6 +146,11 @@ class GameState:
         self.manager.register_system(systems.MovementSystem)
         self.manager.register_system(systems.PopulationGrowthSystem)
 
+        self.manager.register_entity_type('species', [
+            components.SpeciesComponent(),
+            components.SpeciesEnvironmentComponent(),
+            components.SpeciesProductionComponent(),
+        ])
         self.manager.register_entity_type('ship', [
             components.PositionComponent(),
             components.OwnershipComponent(),
@@ -159,9 +164,6 @@ class GameState:
             components.MineralInventoryComponent(),
             components.OwnershipComponent(),
             components.PopulationComponent(),
-        ])
-        self.manager.register_entity_type('species', [
-            components.SpeciesComponent(),
         ])
         self.manager.register_entity_type('movement_order', [
             components.OrderComponent(),
