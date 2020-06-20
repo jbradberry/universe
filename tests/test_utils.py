@@ -3,19 +3,57 @@ import unittest
 from universe import components, engine, utils
 
 
+class PlanetProductionTestCase(unittest.TestCase):
+    def test_values(self):
+        manager = engine.Manager()
+        manager.register_entity_type('species', [
+            components.SpeciesProductionComponent(),
+        ])
+        manager.register_entity_type('planet', [
+            components.PopulationComponent(),
+        ])
+        engine.Entity.register_manager(manager)
+
+        data = [
+            (700, 0, 0),
+            (700, 699, 0),
+            (700, 700, 1),
+            (700, 1_000_000, 1428),
+            (1000, 0, 0),
+            (1000, 999, 0),
+            (1000, 1000, 1),
+            (1000, 1_000_000, 1000),
+            (1500, 0, 0),
+            (1500, 1499, 0),
+            (1500, 1500, 1),
+            (1500, 1_000_000, 666),
+        ]
+
+        for per, pop, value in data:
+            species = engine.Entity(**{
+                'type': 'species',
+                'population_per_r': per,
+                'minerals_per_m': 5,
+                'mines_cost_r': 2,
+                'mines_per_pop': 5,
+            })
+            planet = engine.Entity(**{
+                'type': 'planet',
+                'population': pop,
+            })
+            self.assertEqual(utils.production(species, planet), value,
+                             f"population_per_r: {per}, population: {pop}")
+
+
 class PlanetValueTestCase(unittest.TestCase):
     def test_values(self):
         manager = engine.Manager()
-        manager._entity_registry = {
-            'species': {
-                'metadata': components.MetadataComponent(),
-                'species': components.SpeciesComponent(),
-            },
-            'planet': {
-                'metadata': components.MetadataComponent(),
-                'environment': components.EnvironmentComponent(),
-            },
-        }
+        manager.register_entity_type('species', [
+            components.SpeciesComponent(),
+        ])
+        manager.register_entity_type('planet', [
+            components.EnvironmentComponent(),
+        ])
         engine.Entity.register_manager(manager)
 
         species = engine.Entity(**

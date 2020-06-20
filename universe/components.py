@@ -138,7 +138,7 @@ class OwnershipComponent(Component):
 class PopulationComponent(Component):
     _name = 'population'
 
-    population = fields.IntField(required=False)
+    population = fields.IntField(min=0, required=False)
 
 
 class EnvironmentComponent(Component):

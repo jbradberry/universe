@@ -1,3 +1,4 @@
+from decimal import Decimal
 import math
 
 
@@ -25,3 +26,9 @@ def planet_value(species, planet):
     if red != 0:
         return -red
     return int(int(math.sqrt(value / 3) + 0.9) * ideal / 10000)
+
+
+def production(species, planet):
+    population = Decimal(planet.population or 0)
+
+    return int(population / species.population_per_r)
