@@ -195,6 +195,13 @@ class MineralInventoryComponent(Component):
     germanium = fields.IntField(min=0, required=False)
 
 
+class PlanetaryFacilitiesComponent(Component):
+    _name = 'facilities'
+
+    mines = fields.IntField(min=0, required=False)
+    factories = fields.IntField(min=0, required=False)
+
+
 class OrderComponent(Component):
     _name = 'orders'
 

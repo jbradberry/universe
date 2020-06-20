@@ -162,6 +162,7 @@ class GameState:
             components.EnvironmentComponent(),
             components.MineralConcentrationComponent(),
             components.MineralInventoryComponent(),
+            components.PlanetaryFacilitiesComponent(),
             components.OwnershipComponent(),
             components.PopulationComponent(),
         ])
