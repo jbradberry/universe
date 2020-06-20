@@ -124,9 +124,9 @@ class SpeciesProductionComponent(Component):
 
     population_per_r = fields.IntField(min=700)
 
-    minerals_per_m = fields.IntField(min=5, max=25)
+    minerals_per_m = fields.IntField(min=5, max=25)  # each 10 mines produce X kT of minerals
     mines_cost_r = fields.IntField(min=2, max=15)
-    mines_per_pop = fields.IntField(min=5, max=25)
+    mines_per_pop = fields.IntField(min=5, max=25)  # each 10k colonists can operate X mines
 
 
 class OwnershipComponent(Component):
