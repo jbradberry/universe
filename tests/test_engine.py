@@ -200,7 +200,7 @@ class PersistenceTestCase(unittest.TestCase):
         self.assertEqual(species['factories_produce_r'], 10)
         self.assertEqual(species['factories_cost_r'], 10)
         self.assertEqual(species['factories_per_pop'], 10)
-        self.assertFalse(species['factories_cost_less'], False)
+        self.assertEqual(species['factories_cost_less'], False)
         self.assertEqual(species['minerals_per_m'], 10)
         self.assertEqual(species['mines_cost_r'], 5)
         self.assertEqual(species['mines_per_pop'], 10)

@@ -543,6 +543,255 @@ class UpdateTestCase(unittest.TestCase):
         )
 
 
+class MiningTestCase(unittest.TestCase):
+    def test_uninhabited(self):
+        state = {
+            'turn': 2500,
+            'width': 1000,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                    'population_per_r': 1000,
+                    'factories_produce_r': 10,
+                    'factories_cost_r': 10,
+                    'factories_per_pop': 10,
+                    'factories_cost_less': False,
+                    'minerals_per_m': 10,
+                    'mines_cost_r': 5,
+                    'mines_per_pop': 10,
+                },
+                {
+                    'pk': 1,
+                    'type': 'planet',
+                    'population': 1000,
+                    'x': 480,
+                    'y': 235,
+                    'gravity': 50,
+                    'temperature': 50,
+                    'radiation': 50,
+                    'ironium_conc': 100,
+                    'boranium_conc': 100,
+                    'germanium_conc': 100,
+                },
+            ]
+        }
+
+        S = engine.GameState(state, {})
+        systems.MiningSystem().process(S.manager)
+
+        planets = S.manager.get_entities('mineral_concentrations')
+        self.assertEqual(len(planets), 1)
+        self.assertEqual(planets[1].ironium or 0, 0)
+        self.assertEqual(planets[1].germanium or 0, 0)
+        self.assertEqual(planets[1].boranium or 0, 0)
+
+    def test_no_mines(self):
+        state = {
+            'turn': 2500,
+            'width': 1000,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                    'population_per_r': 1000,
+                    'factories_produce_r': 10,
+                    'factories_cost_r': 10,
+                    'factories_per_pop': 10,
+                    'factories_cost_less': False,
+                    'minerals_per_m': 10,
+                    'mines_cost_r': 5,
+                    'mines_per_pop': 10,
+                },
+                {
+                    'pk': 1,
+                    'type': 'planet',
+                    'population': 1000,
+                    'x': 480,
+                    'y': 235,
+                    'gravity': 50,
+                    'temperature': 50,
+                    'radiation': 50,
+                    'ironium_conc': 100,
+                    'boranium_conc': 100,
+                    'germanium_conc': 100,
+                    'owner_id': 0,
+                },
+            ]
+        }
+
+        S = engine.GameState(state, {})
+        systems.MiningSystem().process(S.manager)
+
+        planets = S.manager.get_entities('mineral_concentrations')
+        self.assertEqual(len(planets), 1)
+        self.assertEqual(planets[1].ironium or 0, 0)
+        self.assertEqual(planets[1].germanium or 0, 0)
+        self.assertEqual(planets[1].boranium or 0, 0)
+
+    def test_full_concentration(self):
+        state = {
+            'turn': 2500,
+            'width': 1000,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                    'population_per_r': 1000,
+                    'factories_produce_r': 10,
+                    'factories_cost_r': 10,
+                    'factories_per_pop': 10,
+                    'factories_cost_less': False,
+                    'minerals_per_m': 10,
+                    'mines_cost_r': 5,
+                    'mines_per_pop': 10,
+                },
+                {
+                    'pk': 1,
+                    'type': 'planet',
+                    'population': 1_000_000,
+                    'x': 480,
+                    'y': 235,
+                    'gravity': 50,
+                    'temperature': 50,
+                    'radiation': 50,
+                    'ironium_conc': 100,
+                    'boranium_conc': 100,
+                    'germanium_conc': 100,
+                    'mines': 1000,
+                    'owner_id': 0,
+                },
+            ]
+        }
+
+        S = engine.GameState(state, {})
+        systems.MiningSystem().process(S.manager)
+
+        planets = S.manager.get_entities('mineral_concentrations')
+        self.assertEqual(len(planets), 1)
+        self.assertEqual(planets[1].ironium or 0, 1000)
+        self.assertEqual(planets[1].germanium or 0, 1000)
+        self.assertEqual(planets[1].boranium or 0, 1000)
+
+    def test_partial_concentration(self):
+        state = {
+            'turn': 2500,
+            'width': 1000,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                    'population_per_r': 1000,
+                    'factories_produce_r': 10,
+                    'factories_cost_r': 10,
+                    'factories_per_pop': 10,
+                    'factories_cost_less': False,
+                    'minerals_per_m': 10,
+                    'mines_cost_r': 5,
+                    'mines_per_pop': 10,
+                },
+                {
+                    'pk': 1,
+                    'type': 'planet',
+                    'population': 1_000_000,
+                    'x': 480,
+                    'y': 235,
+                    'gravity': 50,
+                    'temperature': 50,
+                    'radiation': 50,
+                    'ironium_conc': 50,
+                    'boranium_conc': 50,
+                    'germanium_conc': 50,
+                    'mines': 1000,
+                    'owner_id': 0,
+                },
+            ]
+        }
+
+        S = engine.GameState(state, {})
+        systems.MiningSystem().process(S.manager)
+
+        planets = S.manager.get_entities('mineral_concentrations')
+        self.assertEqual(len(planets), 1)
+        self.assertEqual(planets[1].ironium or 0, 500)
+        self.assertEqual(planets[1].germanium or 0, 500)
+        self.assertEqual(planets[1].boranium or 0, 500)
+
+    def test_depleted(self):
+        state = {
+            'turn': 2500,
+            'width': 1000,
+            'entities': [
+                {
+                    'pk': 0,
+                    'type': 'species',
+                    'name': 'Human',
+                    'plural_name': 'Humans',
+                    'growth_rate': 15,
+                    'gravity_immune': True,
+                    'temperature_immune': True,
+                    'radiation_immune': True,
+                    'population_per_r': 1000,
+                    'factories_produce_r': 10,
+                    'factories_cost_r': 10,
+                    'factories_per_pop': 10,
+                    'factories_cost_less': False,
+                    'minerals_per_m': 10,
+                    'mines_cost_r': 5,
+                    'mines_per_pop': 10,
+                },
+                {
+                    'pk': 1,
+                    'type': 'planet',
+                    'population': 1_000_000,
+                    'x': 480,
+                    'y': 235,
+                    'gravity': 50,
+                    'temperature': 50,
+                    'radiation': 50,
+                    'ironium_conc': 1,
+                    'boranium_conc': 1,
+                    'germanium_conc': 1,
+                    'mines': 1000,
+                    'owner_id': 0,
+                },
+            ]
+        }
+
+        S = engine.GameState(state, {})
+        systems.MiningSystem().process(S.manager)
+
+        planets = S.manager.get_entities('mineral_concentrations')
+        self.assertEqual(len(planets), 1)
+        self.assertEqual(planets[1].ironium or 0, 10)
+        self.assertEqual(planets[1].germanium or 0, 10)
+        self.assertEqual(planets[1].boranium or 0, 10)
+
+
 class PopulationGrowthTestCase(unittest.TestCase):
     def test_habitability_growth(self):
         state = {

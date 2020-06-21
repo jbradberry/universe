@@ -144,6 +144,7 @@ class GameState:
         self.manager = Manager()
         self.manager.register_system(systems.UpdateSystem)
         self.manager.register_system(systems.MovementSystem)
+        self.manager.register_system(systems.MiningSystem)
         self.manager.register_system(systems.PopulationGrowthSystem)
 
         self.manager.register_entity_type('species', [
