@@ -124,8 +124,14 @@ class SpeciesProductionComponent(Component):
 
     population_per_r = fields.IntField(min=700)
 
+    factories_produce_r = fields.IntField(min=5, max=15)  # each 10 factories produce X production
+    factories_cost_r = fields.IntField(min=5, max=25)  # each factory costs X production
+    factories_per_pop = fields.IntField(min=5, max=25)  # each 10k colonists can operate X factories
+
+    factories_cost_less = fields.BooleanField()  # each factory costs 3kT germanium instead of 4kT
+
     minerals_per_m = fields.IntField(min=5, max=25)  # each 10 mines produce X kT of minerals
-    mines_cost_r = fields.IntField(min=2, max=15)
+    mines_cost_r = fields.IntField(min=2, max=15)  # each mine costs X production
     mines_per_pop = fields.IntField(min=5, max=25)  # each 10k colonists can operate X mines
 
 
