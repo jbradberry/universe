@@ -60,6 +60,12 @@ class IntFieldTestCase(unittest.TestCase):
 
         self.assertIsNone(field.validate({}))
 
+    def test_ranged_not_required(self):
+        field = fields.IntField(min=0, max=100, required=False)
+        field.name = 'widgets'
+
+        self.assertIsNone(field.validate({}))
+
     def test_explicit_required(self):
         field = fields.IntField(required=True)
         field.name = 'widgets'

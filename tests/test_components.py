@@ -122,7 +122,7 @@ class MineralConcentrationComponentTestCase(unittest.TestCase):
         self.assertTrue(components.MineralConcentrationComponent().serialize(data))
 
 
-class SpeciesComponentTestCase(unittest.TestCase):
+class SpeciesEnvironmentComponentTestCase(unittest.TestCase):
     def test_immune(self):
         data = {
             'type': 'species',
@@ -133,12 +133,12 @@ class SpeciesComponentTestCase(unittest.TestCase):
             'temperature_immune': True,
             'radiation_immune': True,
         }
-        component = components.SpeciesComponent()
+        component = components.SpeciesEnvironmentComponent()
 
         self.assertIsNone(component.validate(data))
 
     def test_immune_with_value(self):
-        component = components.SpeciesComponent()
+        component = components.SpeciesEnvironmentComponent()
 
         for fname in ('gravity', 'temperature', 'radiation'):
             data = {
@@ -171,13 +171,13 @@ class SpeciesComponentTestCase(unittest.TestCase):
             'temperature_immune': False,
             'radiation_immune': False,
         }
-        component = components.SpeciesComponent()
+        component = components.SpeciesEnvironmentComponent()
 
         with self.assertRaises(exceptions.ValidationError):
             component.validate(data)
 
     def test_not_immune_without_value(self):
-        component = components.SpeciesComponent()
+        component = components.SpeciesEnvironmentComponent()
 
         for fname in ('gravity', 'temperature', 'radiation'):
             data = {

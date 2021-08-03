@@ -1,3 +1,4 @@
+from decimal import Decimal
 import math
 
 
@@ -25,3 +26,23 @@ def planet_value(species, planet):
     if red != 0:
         return -red
     return int(int(math.sqrt(value / 3) + 0.9) * ideal / 10000)
+
+
+def production(species, planet):
+    population = Decimal(planet.population or 0)
+
+    return int(population / species.population_per_r)
+
+
+def mining(species, planet):
+    population = Decimal(planet.population or 0)
+    mines = planet.mines or 0
+    can_operate = int(population / 10_000) * species.mines_per_pop
+
+    mines = Decimal(min(mines, can_operate))
+    capacity = int(mines * species.minerals_per_m / 10)
+    ir = Decimal(planet.ironium_conc) / 100
+    bo = Decimal(planet.boranium_conc) / 100
+    ga = Decimal(planet.germanium_conc) / 100
+
+    return (int(ir * capacity), int(bo * capacity), int(ga * capacity))

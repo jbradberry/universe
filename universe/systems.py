@@ -138,6 +138,19 @@ class MovementSystem:
                     order.seq = i
 
 
+class MiningSystem:
+    def process(self, manager):
+        for _id, entity in manager.get_entities('mineral_concentrations').items():
+            species = manager.get_entity('species', entity.owner_id)
+            if species is None:
+                continue
+
+            ir, bo, ge = utils.mining(species, entity)
+            entity.ironium = (entity.ironium or 0) + ir
+            entity.boranium = (entity.boranium or 0) + bo
+            entity.germanium = (entity.germanium or 0) + ge
+
+
 class PopulationGrowthSystem:
     def process(self, manager):
         for _id, entity in manager.get_entities('population').items():

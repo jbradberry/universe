@@ -57,6 +57,14 @@ class PersistenceTestCase(unittest.TestCase):
                     'gravity_immune': True,
                     'temperature_immune': True,
                     'radiation_immune': True,
+                    'population_per_r': 1000,
+                    'factories_produce_r': 10,
+                    'factories_cost_r': 10,
+                    'factories_per_pop': 10,
+                    'factories_cost_less': False,
+                    'minerals_per_m': 10,
+                    'mines_cost_r': 5,
+                    'mines_per_pop': 10,
                 },
                 {
                     'pk': 1,
@@ -112,6 +120,14 @@ class PersistenceTestCase(unittest.TestCase):
                     'gravity_immune': True,
                     'temperature_immune': True,
                     'radiation_immune': True,
+                    'population_per_r': 1000,
+                    'factories_produce_r': 10,
+                    'factories_cost_r': 10,
+                    'factories_per_pop': 10,
+                    'factories_cost_less': False,
+                    'minerals_per_m': 10,
+                    'mines_cost_r': 5,
+                    'mines_per_pop': 10,
                 },
                 {
                     'pk': 1,
@@ -155,6 +171,14 @@ class PersistenceTestCase(unittest.TestCase):
                     'gravity_immune': True,
                     'temperature_immune': True,
                     'radiation_immune': True,
+                    'population_per_r': 1000,
+                    'factories_produce_r': 10,
+                    'factories_cost_r': 10,
+                    'factories_per_pop': 10,
+                    'factories_cost_less': False,
+                    'minerals_per_m': 10,
+                    'mines_cost_r': 5,
+                    'mines_per_pop': 10,
                 },
             ]
         }
@@ -172,6 +196,14 @@ class PersistenceTestCase(unittest.TestCase):
         self.assertEqual(species['gravity_immune'], True)
         self.assertEqual(species['temperature_immune'], True)
         self.assertEqual(species['radiation_immune'], True)
+        self.assertEqual(species['population_per_r'], 1000)
+        self.assertEqual(species['factories_produce_r'], 10)
+        self.assertEqual(species['factories_cost_r'], 10)
+        self.assertEqual(species['factories_per_pop'], 10)
+        self.assertEqual(species['factories_cost_less'], False)
+        self.assertEqual(species['minerals_per_m'], 10)
+        self.assertEqual(species['mines_cost_r'], 5)
+        self.assertEqual(species['mines_per_pop'], 10)
 
 
 class MovementTestCase(unittest.TestCase):

@@ -72,6 +72,10 @@ class SpeciesComponent(Component):
     plural_name = fields.CharField(required=True)
     growth_rate = fields.IntField(required=True)
 
+
+class SpeciesEnvironmentComponent(Component):
+    _name = 'species_environment'
+
     gravity_min = fields.IntField(min=0, max=100, required=False)
     gravity_max = fields.IntField(min=0, max=100, required=False)
     gravity_immune = fields.BooleanField()
@@ -115,6 +119,22 @@ class SpeciesComponent(Component):
                     "'radiation_min' and 'radiation_max' must be set if 'radiation_immune' is false.")
 
 
+class SpeciesProductionComponent(Component):
+    _name = 'species_production'
+
+    population_per_r = fields.IntField(min=700)
+
+    factories_produce_r = fields.IntField(min=5, max=15)  # each 10 factories produce X production
+    factories_cost_r = fields.IntField(min=5, max=25)  # each factory costs X production
+    factories_per_pop = fields.IntField(min=5, max=25)  # each 10k colonists can operate X factories
+
+    factories_cost_less = fields.BooleanField()  # each factory costs 3kT germanium instead of 4kT
+
+    minerals_per_m = fields.IntField(min=5, max=25)  # each 10 mines produce X kT of minerals
+    mines_cost_r = fields.IntField(min=2, max=15)  # each mine costs X production
+    mines_per_pop = fields.IntField(min=5, max=25)  # each 10k colonists can operate X mines
+
+
 class OwnershipComponent(Component):
     _name = 'ownership'
 
@@ -124,7 +144,7 @@ class OwnershipComponent(Component):
 class PopulationComponent(Component):
     _name = 'population'
 
-    population = fields.IntField(required=False)
+    population = fields.IntField(min=0, required=False)
 
 
 class EnvironmentComponent(Component):
@@ -179,6 +199,13 @@ class MineralInventoryComponent(Component):
     ironium = fields.IntField(min=0, required=False)
     boranium = fields.IntField(min=0, required=False)
     germanium = fields.IntField(min=0, required=False)
+
+
+class PlanetaryFacilitiesComponent(Component):
+    _name = 'facilities'
+
+    mines = fields.IntField(min=0, required=False)
+    factories = fields.IntField(min=0, required=False)
 
 
 class OrderComponent(Component):
